@@ -7,6 +7,7 @@ import 'package:carilaundry2/pages/home.dart';
 import 'package:carilaundry2/pages/login.dart';
 import 'package:carilaundry2/pages/single_order.dart';
 import 'package:carilaundry2/utils/constants.dart';
+// import 'package:carilaundry2/widgets/top_bar.dart';
 
 void main() {
   runApp(MyApp());
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
               visualDensity: VisualDensity.adaptivePlatformDensity,
               textTheme: GoogleFonts.poppinsTextTheme(),
             ),
-            initialRoute: "/",
+            initialRoute: "/dashboard",
             onGenerateRoute: _onGenerateRoute,
           ),
     );
@@ -56,7 +57,9 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
     case "/dashboard":
       return MaterialPageRoute(
         builder: (BuildContext context) {
-          return Dashboard();
+          return Dashboard(
+            userName: settings.arguments as String?,
+          );
         },
         settings: settings, // Teruskan settings ke MaterialPageRoute
       );

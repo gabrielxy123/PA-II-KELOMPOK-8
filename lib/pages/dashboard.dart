@@ -1,199 +1,155 @@
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_icons_null_safety/flutter_icons_null_safety.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:carilaundry2/utils/constants.dart';
-import 'package:carilaundry2/widgets/latest_orders.dart';
-import 'package:carilaundry2/widgets/location_slider.dart';
+import 'package:carilaundry2/widgets/bottom_navigation.dart';
+import 'package:carilaundry2/widgets/search_bar.dart';
+import 'package:carilaundry2/widgets/top_bar.dart';
+import 'package:carilaundry2/widgets/laundry_card.dart';
+import 'package:carilaundry2/widgets/banner_widget.dart';
+
+void main() {
+  runApp(const Dashboard());
+}
 
 class Dashboard extends StatefulWidget {
+  final String? userName;
+  const Dashboard({Key? key, this.userName}) : super(key: key);
+
   @override
-  _DashboardState createState() => _DashboardState();
+  State<Dashboard> createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
-  // Track active index
-  int activeIndex = 0;
-  String Name = "Guest"; // Default value jika tidak ada data
+  int _selectedIndex = 0;
+  int _currentBannerIndex = 0;
+  final PageController _pageController = PageController();
+  String? userName;
 
   @override
-void didChangeDependencies() {
-  super.didChangeDependencies();
-  final args = ModalRoute.of(context)!.settings.arguments;
-  print("Received arguments: $args"); // Debugging: Cetak arguments
-  if (args != null && args is String) {
-    setState(() {
-      Name = args; // Update state dengan nama pengguna
+  void initState() {
+    super.initState();
+    //ambil data username
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if(args!=null && args is String) {
+        userName = args;
+      }
+    });
+    
+    // Auto-scroll banner
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        _autoScrollBanner();
+      }
     });
   }
-}
+
+  void _autoScrollBanner() {
+    if (!mounted) return;
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (_pageController.hasClients) {
+        if (_currentBannerIndex < 3) {
+          _currentBannerIndex++;
+        } else {
+          _currentBannerIndex = 0;
+        }
+
+        _pageController.animateToPage(
+          _currentBannerIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeIn,
+        );
+      }
+      _autoScrollBanner();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: CurvedNavigationBar(
-        backgroundColor: Constants.scaffoldBackgroundColor,
-        buttonBackgroundColor: Constants.primaryColor,
-        items: [
-          Icon(
-            FlutterIcons.ios_home_ion,
-            size: 30.0,
-            color: activeIndex == 0 ? Colors.white : Color(0xFFC8C9CB),
-          ),
-          Icon(
-            FlutterIcons.map_marker_radius_mco,
-            size: 30.0,
-            color: activeIndex == 1 ? Colors.white : Color(0xFFC8C9CB),
-          ),
-          Icon(
-            FlutterIcons.plus_ant,
-            size: 30.0,
-            color: activeIndex == 2 ? Colors.white : Color(0xFFC8C9CB),
-          ),
-          Icon(
-            FlutterIcons.heart_fea,
-            size: 30.0,
-            color: activeIndex == 3 ? Colors.white : Color(0xFFC8C9CB),
-          ),
-          Icon(
-            FlutterIcons.setting_ant,
-            size: 30.0,
-            color: activeIndex == 4 ? Colors.white : Color(0xFFC8C9CB),
-          ),
-        ],
-        onTap: (index) {
-          setState(() {
-            activeIndex = index;
-          });
-        },
-      ),
-      backgroundColor: Constants.primaryColor,
-      body: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            right: 0.0,
-            top: -20.0,
-            child: Opacity(
-              opacity: 0.3,
-              child: Image.asset(
-                "assets/images/washing_machine_illustration.png",
-              ),
-            ),
-          ),
-          SingleChildScrollView(
-            child: Container(
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    height: kToolbarHeight,
+                  // Top Bar
+                  TopBarWidget(),
+
+                  // Search Bar
+                  const SearchBarWidget(),
+
+                  // Banner Carousel
+                  BannerCarouselWidget(
+                    pageController: _pageController,
+                    currentBannerIndex: _currentBannerIndex,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentBannerIndex = index;
+                      });
+                    },
                   ),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: Icon(
-                            FlutterIcons.keyboard_backspace_mdi,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: "Selamat Datang,\n",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge!
-                                        .copyWith(
-                                          color: Colors.white,
-                                        ),
-                                  ),
-                                  TextSpan(
-                                    text: Name, // Tampilkan nama pengguna
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge!
-                                        .copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Image.asset(
-                              "assets/images/dp.png",
-                            )
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 50.0,
-                  ),
-                  Container(
-                    width: double.infinity,
-                    constraints: BoxConstraints(
-                      minHeight: MediaQuery.of(context).size.height - 200.0,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30.0),
-                        topRight: Radius.circular(30.0),
-                      ),
-                      color: Constants.scaffoldBackgroundColor,
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      vertical: 24.0,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 24.0,
-                          ),
-                          child: Text(
-                            "New Locations",
-                            style: TextStyle(
-                              color: Color.fromRGBO(19, 22, 33, 1),
-                              fontSize: 18.0,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 7.0),
-                        Container(
-                          height: ScreenUtil().setHeight(100.0),
-                          child: Center(
-                            // lets make a widget for the cards
-                            child: LocationSlider(),
-                          ),
-                        ),
-                        LatestOrders(),
-                      ],
-                    ),
-                  )
                 ],
               ),
             ),
-          ),
-        ],
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverGrid(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final services = [
+                      LaundryServiceCardWidget(
+                        title: 'Laundry Sepatu',
+                        logoAsset: 'assets/images/agian.png',
+                        description: 'okokok.',
+                        price: 'Rp.15.000.00',
+                      ),
+                      LaundryServiceCardWidget(
+                        title: 'Laundry Cover',
+                        logoAsset: 'assets/images/fanya.png',
+                        description: 'okokok.',
+                        price: 'Rp.25.000.00',
+                      ),
+                      LaundryServiceCardWidget(
+                        title: 'Laundry Cover Bed',
+                        logoAsset: 'assets/images/agian.png',
+                        description: 'okokok.',
+                        price: 'Rp.20.000.00',
+                      ),
+                      LaundryServiceCardWidget(
+                        title: 'Laundry Jas',
+                        logoAsset: 'assets/images/agian.png',
+                        description: 'okook',
+                        price: 'Rp.20.000.00',
+                      ),
+                    ];
+                    return services[index % services.length];
+                  },
+                  childCount: 6,
+                ),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 0.75,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBarWidget(
+        selectedIndex: _selectedIndex,
+        onItemTapped: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
       ),
     );
   }

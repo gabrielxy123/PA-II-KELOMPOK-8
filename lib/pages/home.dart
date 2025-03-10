@@ -3,7 +3,7 @@ import 'package:carilaundry2/utils/constants.dart';
 import 'package:carilaundry2/utils/helper.dart';
 import 'package:carilaundry2/widgets/app_button.dart';
 
-class Home extends StatelessWidget {
+class  Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

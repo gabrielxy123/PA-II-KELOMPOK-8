@@ -10,6 +10,4 @@ class Authcontroller {
   final TextEditingController confirmEmailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
-
-  
 }
