@@ -142,9 +142,17 @@ class _LoginState extends State<Login> {
                     onTap: () {
                       Navigator.pushNamed(context, "/register");
                     },
-                    child: Text(
-                      "Belum punya akun?",
-                      style: TextStyle(color: Colors.green),
+                    child: RichText(
+                      text: TextSpan(
+                        text: "Belum memiliki akun? ",
+                        style: TextStyle(color: Colors.black),
+                        children: [
+                          TextSpan(
+                            text: "Daftar sekarang",
+                            style: TextStyle(color: Colors.green)
+                          )
+                        ]
+                      )
                     ),
                   ),
                 ),
