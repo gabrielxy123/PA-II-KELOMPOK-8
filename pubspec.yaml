@@ -1,0 +1,47 @@
+name: carilaundry2
+description: "A new Flutter project."
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  animated_bottom_navigation_bar: ^0.3.2
+  curved_navigation_bar: ^1.0.3
+  flutter_icons_null_safety: ^1.1.0
+  flutter_screenutil: ^5.0.0+2
+  google_fonts: ^6.2.1
+  carousel_slider: ^4.2.1
+  intl: ^0.17.0
+  http: ^1.1.0
+  http_parser: ^4.0.2
+  path_provider: ^2.0.11
+  provider: ^6.1.2
+  shared_preferences: ^2.2.0
+  image_picker: ^1.0.4
+  permission_handler: ^11.1.0
+  app_settings: ^5.0.0
+  crypto: ^3.0.3
+  device_info_plus: ^9.1.2
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  assets:
+    - assets/images/logo.png
+    - assets/images/agian.png
+    - assets/images/fanya.png
+    - assets/images/illustration.png
+
+  uses-material-design: true
