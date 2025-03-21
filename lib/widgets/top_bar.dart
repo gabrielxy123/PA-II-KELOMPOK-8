@@ -38,7 +38,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
                 Navigator.pushNamed(context, "/login");
               } else {
                 // Navigate to profile page when profile is tapped
-                Navigator.pushNamed(context, "/profile").then((_) {
+                Navigator.pushNamed(context, "/user-profil").then((_) {
                   // Refresh data when returning from profile page (optional)
                   if (mounted) {
                     setState(() {});

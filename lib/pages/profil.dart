@@ -242,7 +242,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       // Create a multipart request
       var request = http.MultipartRequest(
-          'POST', Uri.parse('http://192.168.111.197:8000/api/upload-profile-image'));
+          'POST', Uri.parse('http://172.30.40.71:8000/api/upload-profile-image'));
 
       // Add authorization header
       request.headers['Authorization'] = 'Bearer $token';
@@ -263,7 +263,7 @@ class _ProfilePageState extends State<ProfilePage> {
       print('Laravel server response: $responseData');
 
       if (response.statusCode == 200) {
-        final jsonData = json.decode(responseData);
+        final jsonData = json.decode(responseData); 
         if (jsonData['status'] == 'success' && jsonData['image_url'] != null) {
           print(
               'Image successfully uploaded to Laravel: ${jsonData['image_url']}');
@@ -301,7 +301,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.111.197:8000/api/user-profil'),
+        Uri.parse('http://172.30.40.71:8000/api/user-profil'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -346,7 +346,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Updating profile with email: ${emailController.text} and phone: ${phoneController.text}');
 
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/update-profile'),
+        Uri.parse('http://172.30.40.71:8000/api/update-profile'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -391,637 +391,643 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Constants.primaryColor,
-        title: Text("Akun Saya", style: TextStyle(color: Colors.white)),
-        elevation: 0,
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-      ),
-      body: FutureBuilder<UserProfile?>(
-        future: userProfileFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(Constants.primaryColor),
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return _buildErrorState(context, '${snapshot.error}');
-          } else if (snapshot.hasData && snapshot.data != null) {
-            final user = snapshot.data!;
-            return Container(
-              color: Color(0xFFF5F7FA),
-              child: ListView(
-                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                children: [
-                  _buildProfileCard(user),
-                  SizedBox(height: 16),
-                  _buildInfoCard(),
-                  SizedBox(height: 16),
-                  _buildMenuItems(context),
-                  SizedBox(height: 24),
-                  _buildRegisterStoreCard(),
-                  SizedBox(height: 24),
-                ],
-              ),
-            );
-          } else {
-            return _buildNotLoggedInState(context);
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildNotLoggedInState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.account_circle,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Anda Belum Login',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            child: Text(
-              'Silakan login terlebih dahulu untuk mengakses profil Anda',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ),
-          SizedBox(height: 24),
-          ElevatedButton(
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Constants.primaryColor,
+          title: Text("Akun Saya", style: TextStyle(color: Colors.white)),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            color: Colors.white,
             onPressed: () {
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/login', (route) => false);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Constants.primaryColor,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text('Login'),
+              Navigator.pop(context);
+            }
+            
           ),
-        ],
-      ),
-    );
-  }
+          automaticallyImplyLeading: false,
+        ),
+        body: FutureBuilder<UserProfile?>(
+          future: userProfileFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Constants.primaryColor),
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return _buildErrorState(context, '${snapshot.error}');
+            } else if (snapshot.hasData && snapshot.data != null) {
+              final user = snapshot.data!;
+              return Container(
+                color: Color.fromARGB(255, 253, 253, 253),
+                child: ListView(
+                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  children: [
+                    _buildProfileCard(user),
+                    SizedBox(height: 16),
+                    _buildInfoCard(),
+                    SizedBox(height: 16),
+                    _buildMenuItems(context),
+                    SizedBox(height: 24),
+                    _buildRegisterStoreCard(),
+                    SizedBox(height: 24),
+                  ],
+                ),
+              );
+            } else {
+              return _buildNotLoggedInState(context);
+            }
+          },
+        ),
+      );
+    }
 
-  Widget _buildErrorState(BuildContext context, String errorMessage) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Oops! Terjadi Kesalahan',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            child: Text(
-              errorMessage,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ),
-          SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                userProfileFuture = fetchUserProfile();
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Constants.primaryColor,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text('Coba Lagi'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileCard(UserProfile user) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
+    Widget _buildNotLoggedInState(BuildContext context) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
-              onTap: _showImagePicker,
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.grey.shade200,
-                    backgroundImage: _getProfileImage(user),
-                    child: (_imageFile == null &&
-                            (user.profileImage.isEmpty ||
-                                user.profileImage == ""))
-                        ? Icon(Icons.person,
-                            size: 30, color: Constants.primaryColor)
-                        : null,
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Constants.primaryColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.camera_alt,
-                        size: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
+            Icon(
+              Icons.sentiment_dissatisfied_rounded,
+              size: 64,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Anda Belum Login',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                ],
+            SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: Text(
+                'Silakan login terlebih dahulu untuk mengakses profil Anda',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
               ),
+            ),
+            SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil("/login", (route) => false);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Constants.primaryColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text('Login'),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // Helper method to get profile image
-  ImageProvider? _getProfileImage(UserProfile user) {
-    if (_imageFile != null) {
-      return FileImage(_imageFile!);
-    } else if (user.profileImage.isNotEmpty && user.profileImage != "") {
-      try {
-        // Use a reliable placeholder service or a local asset
-        if (user.profileImage.contains('placeholder.com')) {
-          // Return a local asset or a more reliable placeholder service
-          return AssetImage('assets/images/dp.png');
-        }
-        return NetworkImage(user.profileImage);
-      } catch (e) {
-        print('Error loading network image: $e');
-        return AssetImage('assets/images/dp.png');
-      }
+      );
     }
-    return null;
-  }
 
-  Widget _buildInfoCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
+    Widget _buildErrorState(BuildContext context, String errorMessage) {
+      return Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Text(
-                  "Email",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                Spacer(),
-                isEditing
-                    ? Container(
-                        width: 200,
-                        child: TextField(
-                          controller: emailController,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Constants.primaryColor,
-                                width: 1.5,
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    : Row(
-                        children: [
-                          Text(
-                            emailController.text,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                isEditing = true;
-                              });
-                            },
-                            child: Icon(
-                              Icons.edit,
-                              size: 20,
-                              color: Constants.primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-              ],
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.grey,
             ),
             SizedBox(height: 16),
-            Divider(height: 1, color: Colors.grey.shade200),
-            SizedBox(height: 16),
-            Row(
-              children: [
-                Text(
-                  "Nomor HP",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                Spacer(),
-                isEditing
-                    ? Container(
-                        width: 200,
-                        child: TextField(
-                          controller: phoneController,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Constants.primaryColor,
-                                width: 1.5,
-                              ),
-                            ),
-                          ),
-                          keyboardType: TextInputType.phone,
-                        ),
-                      )
-                    : Row(
-                        children: [
-                          Text(
-                            phoneController.text,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                isEditing = true;
-                              });
-                            },
-                            child: Icon(
-                              Icons.edit,
-                              size: 20,
-                              color: Constants.primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-              ],
+            Text(
+              'Oops! Terjadi Kesalahan',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            if (isEditing)
-              Padding(
-                padding: EdgeInsets.only(top: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+            SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: Text(
+                errorMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+            SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  userProfileFuture = fetchUserProfile();
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Constants.primaryColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget _buildProfileCard(UserProfile user) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: _showImagePicker,
+                child: Stack(
                   children: [
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          isEditing = false;
-                          // Reset to original values
-                          userProfileFuture = fetchUserProfile();
-                        });
-                      },
-                      child: Text("Batal"),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.grey.shade700,
-                      ),
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.grey.shade200,
+                      backgroundImage: _getProfileImage(user),
+                      child: (_imageFile == null &&
+                              (user.profileImage.isEmpty ||
+                                  user.profileImage == ""))
+                          ? Icon(Icons.person,
+                              size: 30, color: Constants.primaryColor)
+                          : null,
                     ),
-                    SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: updateProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Constants.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Constants.primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 14,
+                          color: Colors.white,
                         ),
                       ),
-                      child: Text("Simpan"),
                     ),
                   ],
                 ),
               ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuItems(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildMenuItem(
-            icon: Icons.history,
-            title: "Riwayat Transaksi",
-            onTap: () {
-              // Navigate to transaction history
-            },
-          ),
-          Divider(height: 1, color: Colors.grey.shade200),
-          _buildMenuItem(
-            icon: Icons.store,
-            title: "Toko Anda",
-            onTap: () {
-              // Navigate to store page
-            },
-          ),
-          Divider(height: 1, color: Colors.grey.shade200),
-          _buildMenuItem(
-            icon: Icons.logout,
-            title: "Keluar dari Akun",
-            isLogout: true,
-            onTap: () {
-              _showLogoutDialog(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    bool isLogout = false,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isLogout ? Colors.red.shade700 : Constants.primaryColor,
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: isLogout ? Colors.red.shade700 : Colors.black87,
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.name,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                  ],
                 ),
               ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey.shade400,
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Helper method to get profile image
+    ImageProvider? _getProfileImage(UserProfile user) {
+      if (_imageFile != null) {
+        return FileImage(_imageFile!);
+      } else if (user.profileImage.isNotEmpty && user.profileImage != "") {
+        try {
+          // Use a reliable placeholder service or a local asset
+          if (user.profileImage.contains('placeholder.com')) {
+            // Return a local asset or a more reliable placeholder service
+            return AssetImage('assets/images/dp.png');
+          }
+          return NetworkImage(user.profileImage);
+        } catch (e) {
+          print('Error loading network image: $e');
+          return AssetImage('assets/images/dp.png');
+        }
+      }
+      return null;
+    }
+
+    Widget _buildInfoCard() {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: Offset(0, 2),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildRegisterStoreCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    "Email",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Spacer(),
+                  isEditing
+                      ? Container(
+                          width: 200,
+                          child: TextField(
+                            controller: emailController,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Constants.primaryColor,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            Text(
+                              emailController.text,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  isEditing = true;
+                                });
+                              },
+                              child: Icon(
+                                Icons.edit,
+                                size: 20,
+                                color: Constants.primaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Divider(height: 1, color: Colors.grey.shade200),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Text(
+                    "Nomor HP",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Spacer(),
+                  isEditing
+                      ? Container(
+                          width: 200,
+                          child: TextField(
+                            controller: phoneController,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Constants.primaryColor,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                            keyboardType: TextInputType.phone,
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            Text(
+                              phoneController.text,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  isEditing = true;
+                                });
+                              },
+                              child: Icon(
+                                Icons.edit,
+                                size: 20,
+                                color: Constants.primaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                ],
+              ),
+              if (isEditing)
+                Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            isEditing = false;
+                            // Reset to original values
+                            userProfileFuture = fetchUserProfile();
+                          });
+                        },
+                        child: Text("Batal"),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey.shade700,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: updateProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Constants.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text("Simpan"),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
+        ),
+      );
+    }
+
+    Widget _buildMenuItems(BuildContext context) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Punya usaha laundry?",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+            _buildMenuItem(
+              icon: Icons.history,
+              title: "Riwayat Transaksi",
+              onTap: () {
+                // Navigate to transaction history
+              },
             ),
-            SizedBox(height: 8),
-            Text(
-              "Daftarkan toko Anda sekarang untuk menarik pelanggan lebih banyak lagi.",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+            Divider(height: 1, color: Colors.grey.shade200),
+            _buildMenuItem(
+              icon: Icons.store,
+              title: "Toko Anda",
+              onTap: () {
+                // Navigate to store page
+              },
             ),
-            SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Navigate to store registration
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Constants.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
-                ),
+            Divider(height: 1, color: Colors.grey.shade200),
+            _buildMenuItem(
+              icon: Icons.logout,
+              title: "Keluar dari Akun",
+              isLogout: true,
+              onTap: () {
+                _showLogoutDialog(context);
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget _buildMenuItem({
+      required IconData icon,
+      required String title,
+      bool isLogout = false,
+      required VoidCallback onTap,
+    }) {
+      return InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: isLogout ? Colors.red.shade700 : Constants.primaryColor,
+              ),
+              SizedBox(width: 16),
+              Expanded(
                 child: Text(
-                  "Daftarkan Toko Kamu",
+                  title,
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: isLogout ? Colors.red.shade700 : Colors.black87,
                   ),
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Colors.grey.shade400,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget _buildRegisterStoreCard() {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Punya usaha laundry?",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                "Daftarkan toko Anda sekarang untuk menarik pelanggan lebih banyak lagi.",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Navigate to store registration
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Constants.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    "Daftarkan Toko Kamu",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    void _showLogoutDialog(BuildContext context) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            "Keluar Akun ?",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          content: Text(
+            "Apakah kamu ingin keluar dari akunmu sekarang ?",
+            style: TextStyle(
+              fontSize: 15,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Tidak",
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear()  ;
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil("/dashboard", (route) => false);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Constants.primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+              child: Text(
+                "Iya, Keluar",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ],
+          contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 24),
+          actionsPadding: EdgeInsets.fromLTRB(16, 0, 16, 16),
         ),
-      ),
-    );
+      );
+    }
   }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          "Keluar Akun ?",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        content: Text(
-          "Apakah kamu ingin keluar dari akunmu sekarang ?",
-          style: TextStyle(
-            fontSize: 15,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              "Tidak",
-              style: TextStyle(
-                color: Colors.grey.shade700,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.remove('auth_token');
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/login', (route) => false);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Constants.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            ),
-            child: Text(
-              "Iya, Keluar",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-        contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 24),
-        actionsPadding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-      ),
-    );
-  }
-}

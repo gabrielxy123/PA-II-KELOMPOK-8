@@ -95,12 +95,12 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
           return MainContainer(initialIndex: 3);
         },
       );
-    case "/profile":
-      return MaterialPageRoute(
-        builder: (BuildContext context) {
-          return ProfilePage();
-        },
-      );
+    // case "/profile":
+    //   return MaterialPageRoute(
+    //     builder: (BuildContext context) {
+    //       return ProfilePage();
+    //     },
+    //   );
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {

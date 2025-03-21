@@ -77,7 +77,7 @@ class _DashboardState extends State<Dashboard> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.111.197:8000/api/user-profil'),
+        Uri.parse('http://172.30.40.71:8000/api/user-profil'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
