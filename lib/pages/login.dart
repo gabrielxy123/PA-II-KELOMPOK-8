@@ -25,6 +25,26 @@ class _LoginState extends State<Login> {
     _authcontroller = Authcontroller();
   }
 
+  // ---------- LOADING DIALOG ----------
+  void _showLoadingDialog() {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------- LOGIN FUNCTION ----------
   void _login(String name, String password) async {
     if (name.isEmpty) {
       _showErrorDialog("Nama harus diisi.");
@@ -36,6 +56,8 @@ class _LoginState extends State<Login> {
       return;
     }
 
+    _showLoadingDialog(); // show loading
+
     try {
       final response = await http.post(
         Uri.parse('${Apiconstant.BASE_URL}/login'),
@@ -43,53 +65,38 @@ class _LoginState extends State<Login> {
         body: jsonEncode({'name': name, 'password': password}),
       );
 
-      print('Login response status: ${response.statusCode}');
-      print('Login response body: ${response.body}');
+      Navigator.pop(context); // close loading
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         String token = responseData['token'] ?? '';
-        if (token.isEmpty) {
-          throw Exception('Token tidak ditemukan di respons API');
-        }
+        if (token.isEmpty) throw Exception('Token tidak ditemukan di respons API');
+
         String userName = responseData['user']['name'] ?? 'Guest';
         String userProfileImage = responseData['user']['profile_image'] ?? '';
 
-        print('Login successful - userName: $userName');
-        print('Login successful - userProfileImage: $userProfileImage');
-
-        // Simpan data pengguna di SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userName', userName);
         await prefs.setString('userProfileImage', userProfileImage);
         await prefs.setString('auth_token', token);
 
-        // Fetch full profile after login to ensure we have all data
         await _fetchUserProfile(token);
 
         CustomSnackbar.showSuccess(context, "Login Berhasil!");
 
-        Navigator.pushReplacementNamed(
-          context,
-          "/dashboard",
-          arguments: userName, // Kirim nama pengguna sebagai argumen
-        );
+        Navigator.pushReplacementNamed(context, "/dashboard", arguments: userName);
       } else {
         final responseData = jsonDecode(response.body);
-        String errorMessage =
-            responseData['message'] ?? "Login gagal. Periksa data Anda";
+        String errorMessage = responseData['message'] ?? "Login gagal. Periksa data Anda";
         _showErrorDialog(errorMessage);
       }
     } catch (e) {
-      print('Login error: $e');
-      _showErrorDialog(
-        "Terjadi kesalahan. Periksa koneksi Anda dan coba lagi.",
-      );
+      Navigator.pop(context); // close loading on error
+      _showErrorDialog("Terjadi kesalahan. Periksa koneksi Anda dan coba lagi.");
     }
   }
 
-  // Fetch complete user profile data after login
   Future<void> _fetchUserProfile(String token) async {
     try {
       final response = await http.get(
@@ -101,18 +108,12 @@ class _LoginState extends State<Login> {
         },
       );
 
-      print('Profile fetch response status: ${response.statusCode}');
-      print('Profile fetch response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['status'] == 'success') {
           final profileData = data['data'];
           String profileImage = profileData['profile_image'] ?? '';
 
-          print('Fetched profile image URL: $profileImage');
-
-          // Update SharedPreferences with the latest profile data
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('userProfileImage', profileImage);
         }
@@ -138,6 +139,7 @@ class _LoginState extends State<Login> {
     );
   }
 
+  // ---------- BUILD UI ----------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -154,7 +156,7 @@ class _LoginState extends State<Login> {
                   child: Column(
                     children: [
                       Image.asset(
-                        'assets/images/logo.png', // Ganti dengan logo sesuai gambar
+                        'assets/images/logo.png',
                         height: 110,
                       ),
                       SizedBox(height: 30),

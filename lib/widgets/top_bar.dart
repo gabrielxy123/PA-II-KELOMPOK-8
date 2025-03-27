@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:carilaundry2/models/userProfile.dart';
+import 'dart:io';
 
 class TopBarWidget extends StatefulWidget {
   final bool isLoggedIn; // Status login
@@ -17,6 +19,7 @@ class TopBarWidget extends StatefulWidget {
 }
 
 class _TopBarWidgetState extends State<TopBarWidget> {
+  File? _imageFile;
   @override
   void initState() {
     super.initState();
@@ -57,7 +60,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
                   child: CircleAvatar(
                     radius: 14,
                     backgroundColor: Colors.grey,
-                    backgroundImage: _getProfileImageProvider(),
+                    backgroundImage: _getProfileImage(),
                     child: (!widget.isLoggedIn || _shouldShowDefaultIcon())
                         ? Icon(Icons.person_outline,
                             color: Colors.white, size: 20)
@@ -96,17 +99,21 @@ class _TopBarWidgetState extends State<TopBarWidget> {
   }
 
   // Helper method to get the profile image provider
-  ImageProvider? _getProfileImageProvider() {
-    if (widget.isLoggedIn &&
-        widget.userProfileImage != null &&
-        widget.userProfileImage!.isNotEmpty &&
-        widget.userProfileImage != "null") {
+  ImageProvider? _getProfileImage() {
+    if (_imageFile != null) {
+      return FileImage(_imageFile!);
+    } else if (widget.userProfileImage != null &&
+        widget.userProfileImage!.isNotEmpty) {
       try {
-        print('Using profile image URL: ${widget.userProfileImage}');
+        // Use a reliable placeholder service or a local asset
+        if (widget.userProfileImage!.contains('placeholder.com')) {
+          // Return a local asset or a more reliable placeholder service
+          return AssetImage('assets/images/dp.png');
+        }
         return NetworkImage(widget.userProfileImage!);
       } catch (e) {
-        print('Error creating NetworkImage: $e');
-        return null;
+        print('Error loading network image: $e');
+        return AssetImage('assets/images/dp.png');
       }
     }
     return null;

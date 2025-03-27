@@ -104,7 +104,7 @@ class _DashboardState extends State<Dashboard> {
                         title: 'Laundry Cover',
                         logoAsset: 'assets/images/fanya.png',
                         description: 'okokok.',
-                        price: 'Pesan Sekarang',
+                        price: 'Rp.Pesan Sekarang',
                       ),
                     ];
                     return services[index % services.length];
