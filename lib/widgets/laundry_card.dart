@@ -60,14 +60,14 @@ class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
           Expanded(
             flex: 2,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.title,
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize:15,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
@@ -91,7 +91,9 @@ class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, "/order-menu");
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(156, 2, 103, 56),
                 shape: RoundedRectangleBorder(
