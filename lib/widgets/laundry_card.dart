@@ -91,7 +91,9 @@ class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, "/order-menu");
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(156, 2, 103, 56),
                 shape: RoundedRectangleBorder(

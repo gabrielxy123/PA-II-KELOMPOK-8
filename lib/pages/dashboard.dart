@@ -74,18 +74,6 @@ class _DashboardState extends State<Dashboard> {
                   TopBarWidget(
                     isLoggedIn: userName != null, 
                     userName: userName,
-                    onNotificationTap: () { 
-                      Navigator.pushNamed(
-                        context, 
-                        "/notifikasi",
-                        arguments: {
-                          'notifications': [
-                            "Pesanan #123 telah selesai!",
-                            "Promo diskon 20% untuk pelanggan baru!"
-                          ]
-                        },
-                      );
-                    },
                   ),
                   const SearchBarWidget(),
                   BannerCarouselWidget(
@@ -110,13 +98,13 @@ class _DashboardState extends State<Dashboard> {
                         title: 'Laundry Sepatu',
                         logoAsset: 'assets/images/agian.png',
                         description: 'okokok.',
-                        price: 'Rp.15.000.00',
+                        price: 'Pesan Sekarang',
                       ),
                       LaundryServiceCardWidget(
                         title: 'Laundry Cover',
                         logoAsset: 'assets/images/fanya.png',
                         description: 'okokok.',
-                        price: 'Rp.25.000.00',
+                        price: 'Pesan Sekarang',
                       ),
                     ];
                     return services[index % services.length];
@@ -134,20 +122,20 @@ class _DashboardState extends State<Dashboard> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBarWidget(
-        selectedIndex: _selectedIndex,
-        onItemTapped: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-          if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => OrderHistoryPage()),
-            );
-          } 
-        },
-      ),
+      // bottomNavigationBar: BottomNavigationBarWidget(
+      //   selectedIndex: _selectedIndex,
+      //   onItemTapped: (index) {
+      //     setState(() {
+      //       _selectedIndex = index;
+      //     });
+      //     if (index == 2) {
+      //       Navigator.push(
+      //         context,
+      //         MaterialPageRoute(builder: (context) => OrderHistoryPage()),
+      //       );
+      //     } 
+      //   },
+      // ),
     );
   }
 }
