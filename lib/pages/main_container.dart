@@ -36,7 +36,7 @@ class _MainContainerState extends State<MainContainer> {
       Dashboard(),
       Container(
           child:
-              Center(child: Text('Order Page'))), // Placeholder for Order page
+              Center(child: Text('oke'))), // Placeholder for Order page
       Container(
           child: Center(child: Text('Toko Page'))), // Placeholder for Toko page
       ProfilePage(),

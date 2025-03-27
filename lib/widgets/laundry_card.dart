@@ -60,14 +60,14 @@ class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
           Expanded(
             flex: 2,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.title,
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize:15,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
