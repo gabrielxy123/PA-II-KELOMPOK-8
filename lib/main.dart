@@ -10,7 +10,6 @@ import 'package:carilaundry2/pages/single_order.dart';
 import 'package:carilaundry2/pages/main_container.dart';
 import 'package:carilaundry2/utils/constants.dart';
 import 'package:carilaundry2/pages/order_history.dart';
-import 'package:carilaundry2/pages/notifikasi.dart';
 
 // Global key for app-wide SnackBars
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -97,18 +96,10 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
       );
     case "/order-history":
       return MaterialPageRoute(builder: (context) => OrderHistoryPage());
-    case "/notifikasi":
-      final args = settings.arguments as Map<String, dynamic>? ?? {};
-      print("Data yang dikirim ke NotifikasiPage: $args"); 
-      return MaterialPageRoute(
-        builder: (context) => NotifikasiPage(
-          notifications: args['notifications'] as List<String>? ?? [],
-        ),
-      );
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {
-          return Home();
+          return Dashboard();
         },
       );
   }

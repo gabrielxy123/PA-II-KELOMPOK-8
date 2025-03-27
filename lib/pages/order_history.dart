@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carilaundry2/pages/order_detail.dart';
 import 'package:carilaundry2/pages/order_rating.dart';
+import 'package:carilaundry2/pages/dashboard.dart';
 import 'package:carilaundry2/widgets/bottom_navigation.dart';
 import 'package:carilaundry2/widgets/search_bar.dart';
 import 'package:carilaundry2/widgets/top_bar.dart';

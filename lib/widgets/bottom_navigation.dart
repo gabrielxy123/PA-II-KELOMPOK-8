@@ -13,8 +13,7 @@ class BottomNavigationBarWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BottomNavigationBarWidget> createState() =>
-      _BottomNavigationBarWidgetState();
+  State<BottomNavigationBarWidget> createState() => _BottomNavigationBarWidgetState();
 }
 
 class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
@@ -36,6 +35,21 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       animationDuration: const Duration(milliseconds: 300),
       onTap: (index) {
         widget.onItemTapped(index);
+
+        switch (index) {
+          case 0:
+            Navigator.pushReplacementNamed(context, '/dashboard');
+            break;
+          case 1:
+            Navigator.pushReplacementNamed(context, '/order-history');
+            break;
+          case 2:
+            Navigator.pushReplacementNamed(context, '/toko');
+            break;
+          case 3:
+            Navigator.pushReplacementNamed(context, '/user-profil');
+            break;
+        }
       },
     );
   }
@@ -43,9 +57,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   Widget _buildNavItem(IconData icon, IconData activeIcon) {
     return Icon(
       widget.selectedIndex == _getIndex(icon) ? activeIcon : icon,
-      color: widget.selectedIndex == _getIndex(icon)
-          ? Constants.primaryColor
-          : Colors.grey.shade600,
+      color: widget.selectedIndex == _getIndex(icon) ? Constants.primaryColor : Colors.grey.shade600,
       size: 28,
     );
   }
