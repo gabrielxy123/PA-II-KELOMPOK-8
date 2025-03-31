@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:carilaundry2/models/userProfile.dart';
 import 'dart:io';
+import 'package:carilaundry2/pages/notifikasi.dart';
+import 'package:carilaundry2/pages/not_logged.dart';
 
 class TopBarWidget extends StatefulWidget {
   final bool isLoggedIn; // Status login
@@ -84,7 +86,22 @@ class _TopBarWidgetState extends State<TopBarWidget> {
           // Notification Icon
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+            onPressed: () {
+              if (widget.isLoggedIn) {
+                // Navigate to notification screen if logged in
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationScreen()),
+                );
+              } else {
+                // Navigate to not-logged-in screen if not logged in
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const NotLoggedScreen()),
+                );
+              }
+            },
           ),
         ],
       ),

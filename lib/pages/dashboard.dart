@@ -5,7 +5,7 @@ import 'package:carilaundry2/widgets/top_bar.dart';
 import 'package:carilaundry2/widgets/laundry_card.dart';
 import 'package:carilaundry2/widgets/banner_widget.dart';
 import 'package:carilaundry2/pages/order_history.dart';
-// import 'package:carilaundry2/pages/notifikasi.dart';
+import 'package:carilaundry2/pages/notifikasi.dart';
 
 class Dashboard extends StatefulWidget {
   static const routeName = '/dashboard';

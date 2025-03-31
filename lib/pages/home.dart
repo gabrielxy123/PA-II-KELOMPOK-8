@@ -4,6 +4,7 @@ import 'package:carilaundry2/models/laundry.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:carilaundry2/pages/notifikasi.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -39,7 +40,7 @@ class _HomeState extends State<Home> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.107.199:8000/api/laundry'),
+        Uri.parse('http://192.168.18.9:8000/api/laundry'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
