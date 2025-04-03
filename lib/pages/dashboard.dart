@@ -110,13 +110,13 @@ class _DashboardState extends State<Dashboard> {
                         title: 'Laundry Sepatu',
                         logoAsset: 'assets/images/agian.png',
                         description: 'okokok.',
-                        price: 'Rp.15.000.00',
+                        price: 'Pesan Sekarang',
                       ),
                       LaundryServiceCardWidget(
                         title: 'Laundry Cover',
                         logoAsset: 'assets/images/fanya.png',
                         description: 'okokok.',
-                        price: 'Rp.25.000.00',
+                        price: 'Pesan Sekarang',
                       ),
                     ];
                     return services[index % services.length];
