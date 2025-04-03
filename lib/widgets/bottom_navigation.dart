@@ -38,16 +38,16 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
 
         switch (index) {
           case 0:
-            Navigator.pushReplacementNamed(context, '/dashboard');
+            Navigator.pushReplacementNamed(context, "/dashboard");
             break;
           case 1:
-            Navigator.pushReplacementNamed(context, '/order-history');
+            Navigator.pushReplacementNamed(context, "/order-history");
             break;
           case 2:
-            Navigator.pushReplacementNamed(context, '/toko');
+            Navigator.pushReplacementNamed(context, "/toko");
             break;
           case 3:
-            Navigator.pushReplacementNamed(context, '/user-profil');
+            Navigator.pushReplacementNamed(context, "/user-profil");
             break;
         }
       },
