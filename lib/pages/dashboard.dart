@@ -26,7 +26,7 @@ class _DashboardState extends State<Dashboard> {
   void initState() {
     super.initState();
     userName = widget.userName;
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is String) {
@@ -35,7 +35,7 @@ class _DashboardState extends State<Dashboard> {
         });
       }
     });
-    
+
     Future.delayed(const Duration(seconds: 3), _autoScrollBanner);
   }
 
@@ -72,11 +72,11 @@ class _DashboardState extends State<Dashboard> {
               child: Column(
                 children: [
                   TopBarWidget(
-                    isLoggedIn: userName != null, 
+                    isLoggedIn: userName != null,
                     userName: userName,
-                    // onNotificationTap: () { 
+                    // onNotificationTap: () {
                     //   Navigator.pushNamed(
-                    //     context, 
+                    //     context,
                     //     "/notifikasi",
                     //     arguments: {
                     //       'notifications': [
@@ -134,20 +134,6 @@ class _DashboardState extends State<Dashboard> {
           ],
         ),
       ),
-      // bottomNavigationBar: BottomNavigationBarWidget(
-      //   selectedIndex: _selectedIndex,
-      //   onItemTapped: (index) {
-      //     setState(() {
-      //       _selectedIndex = index;
-      //     });
-      //     if (index == 2) {
-      //       Navigator.push(
-      //         context,
-      //         MaterialPageRoute(builder: (context) => OrderHistoryPage()),
-      //       );
-      //     } 
-      //   },
-      // ),
     );
   }
 }

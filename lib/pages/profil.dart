@@ -34,7 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     userProfileFuture = _checkLoginAndFetchProfile();
-    // _requestPermissions();
+    _requestPermissions();
   }
 
   Future<UserProfile?> _checkLoginAndFetchProfile() async {
@@ -55,6 +55,22 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _requestPermissions() async {
+    try {
+      // Request all necessary permissions
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.camera,
+        Permission.storage,
+        Permission.photos,
+      ].request();
+
+      print("Camera permission: ${statuses[Permission.camera]}");
+      print("Storage permission: ${statuses[Permission.storage]}");
+      print("Photos permission: ${statuses[Permission.photos]}");
+    } catch (e) {
+      print("Error requesting permissions: $e");
+    }
+  }
 
   void _showSnackBar(String message, Color backgroundColor) {
     // Clear any existing SnackBars
@@ -72,6 +88,44 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
+      // Check and request permissions based on source
+      bool hasPermission = false;
+      if (source == ImageSource.camera) {
+        hasPermission = await Permission.camera.request().isGranted;
+      } else {
+        // For gallery access, try both storage and photos permissions
+        hasPermission = await Permission.storage.request().isGranted ||
+            await Permission.photos.request().isGranted;
+      }
+
+      if (!hasPermission) {
+        // Show dialog to guide user to settings
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Izin Diperlukan'),
+            content: Text(
+              'Aplikasi membutuhkan izin untuk mengakses ${source == ImageSource.camera ? 'kamera' : 'galeri'}. '
+              'Silakan aktifkan izin di pengaturan aplikasi.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await AppSettings.openAppSettings();
+                },
+                child: Text('Buka Pengaturan'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
       final pickedFile = await _picker.pickImage(
         source: source,
         imageQuality: 70,
@@ -85,12 +139,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
         // Upload the image
         await uploadProfileImage();
-      } else {
-        _showSnackBar('Tidak ada gambar yang dipilih.', Colors.orange);
       }
     } catch (e) {
       print('Error picking image: $e');
-      _showSnackBar('Terjadi kesalahan saat memilih gambar: $e', Colors.red);
+      _showSnackBar('Error memilih gambar: $e', Colors.red);
     }
   }
 
@@ -190,7 +242,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       // Create a multipart request
       var request = http.MultipartRequest('POST',
-          Uri.parse('http://172.30.40.71:8000/api/upload-profile-image'));
+          Uri.parse('http://192.168.107.199:8000/api/upload-profile-image'));
 
       // Add authorization header
       request.headers['Authorization'] = 'Bearer $token';
@@ -249,7 +301,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://172.30.40.71:8000/api/user-profil'),
+        Uri.parse('http://192.168.107.199:8000/api/user-profil'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -294,7 +346,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Updating profile with email: ${emailController.text} and phone: ${phoneController.text}');
 
       final response = await http.post(
-        Uri.parse('http://172.30.40.71:8000/api/update-profile'),
+        Uri.parse('http://192.168.107.199:8000/api/update-profile'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

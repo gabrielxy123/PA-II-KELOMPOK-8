@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:carilaundry2/widgets/bottom_navigation.dart';
 import 'package:carilaundry2/pages/dashboard.dart';
 import 'package:carilaundry2/pages/profil.dart';
+import 'package:carilaundry2/pages/order.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Global ScaffoldMessengerKey for snackbars
@@ -34,9 +35,7 @@ class _MainContainerState extends State<MainContainer> {
   void _initPages() {
     _pages = [
       Dashboard(),
-      Container(
-          child:
-              Center(child: Text('oke'))), // Placeholder for Order page
+      OrderHistoryPage(),
       Container(
           child: Center(child: Text('Toko Page'))), // Placeholder for Toko page
       ProfilePage(),
