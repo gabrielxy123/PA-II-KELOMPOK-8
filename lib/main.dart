@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carilaundry2/pages/dashboard.dart';
-import 'package:carilaundry2/pages/home.dart';
 import 'package:carilaundry2/pages/login.dart';
 import 'package:carilaundry2/pages/profil.dart';
 import 'package:carilaundry2/pages/single_order.dart';
@@ -49,12 +48,6 @@ class MyApp extends StatelessWidget {
 
 Route<dynamic> _onGenerateRoute(RouteSettings settings) {
   switch (settings.name) {
-    case "/":
-      return MaterialPageRoute(
-        builder: (BuildContext context) {
-          return Home();
-        },
-      );
     case "/login":
       return MaterialPageRoute(
         builder: (BuildContext context) {
