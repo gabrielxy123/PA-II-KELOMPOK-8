@@ -4,6 +4,7 @@ import 'package:carilaundry2/pages/dashboard.dart';
 import 'package:carilaundry2/pages/profil.dart';
 import 'package:carilaundry2/pages/order.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:carilaundry2/pages/store.dart';
 
 // Global ScaffoldMessengerKey for snackbars
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -36,8 +37,7 @@ class _MainContainerState extends State<MainContainer> {
     _pages = [
       Dashboard(),
       OrderHistoryPage(),
-      Container(
-          child: Center(child: Text('Toko Page'))), // Placeholder for Toko page
+      StorePage(), // Ganti Container dengan StorePage
       ProfilePage(),
     ];
   }

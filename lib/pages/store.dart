@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:carilaundry2/widgets/search_bar.dart'; // Memanggil search bar yang sudah ada
+import 'package:carilaundry2/widgets/search_bar.dart';
+import 'package:carilaundry2/pages/store_detail.dart';
 
 class LaundryService {
   final String title;
@@ -15,48 +16,78 @@ class LaundryService {
   });
 }
 
-class Store {
-  static List<LaundryService> laundryServices = [
+class StorePage extends StatefulWidget {
+  @override
+  _StorePageState createState() => _StorePageState();
+}
+
+class _StorePageState extends State<StorePage> {
+  final TextEditingController _searchController = TextEditingController();
+  List<LaundryService> _filteredServices = [];
+
+  List<LaundryService> _allServices = [
     LaundryService(
-      title: 'Laundry Sepatu',
+      title: 'Agian Laundry',
       logoAsset: 'assets/images/agian.png',
       description: 'Cuci sepatu dengan teknik khusus agar bersih dan wangi.',
       price: 'Rp.15.000',
     ),
     LaundryService(
-      title: 'Laundry Cover',
+      title: 'Laundry Fanya',
       logoAsset: 'assets/images/fanya.png',
       description: 'Cuci dan setrika cover dengan bahan berkualitas.',
       price: 'Rp.25.000',
     ),
   ];
-}
 
-class StorePage extends StatelessWidget {
+  @override
+  void initState() {
+    super.initState();
+    _filteredServices = _allServices;
+    _searchController.addListener(_filterServices);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_filterServices);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterServices() {
+    setState(() {
+      _filteredServices = _allServices
+          .where((service) => service.title
+              .toLowerCase()
+              .contains(_searchController.text.toLowerCase()))
+          .toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Toko Laundry',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        toolbarHeight: 70,
-        backgroundColor: const Color(0xFF006A55),
+        automaticallyImplyLeading: false,
+        title: Text('Toko Laundry'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            SearchBarWidget(), // Memanggil search bar pada body
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari layanan...',
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+              ),
+            ),
             const SizedBox(height: 16),
             Expanded(
               child: GridView.builder(
@@ -66,9 +97,9 @@ class StorePage extends StatelessWidget {
                   crossAxisSpacing: 16,
                   childAspectRatio: 0.75,
                 ),
-                itemCount: Store.laundryServices.length,
+                itemCount: _filteredServices.length,
                 itemBuilder: (context, index) {
-                  final service = Store.laundryServices[index];
+                  final service = _filteredServices[index];
                   return Card(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -88,7 +119,11 @@ class StorePage extends StatelessWidget {
                           const SizedBox(height: 5),
                           ElevatedButton(
                             onPressed: () {
-                              // Add your button action here
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => StoreDetailPage()),
+                              );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF006A55),

@@ -86,12 +86,13 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
           return MainContainer(initialIndex: 1);
         },
       );
-    case "/toko":
+    case "/store":
       return MaterialPageRoute(
         builder: (BuildContext context) {
           return MainContainer(initialIndex: 2);
         },
       );
+
     case "/user-profil":
       return MaterialPageRoute(
         builder: (BuildContext context) {
@@ -104,12 +105,12 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
           return NotificationScreen();
         },
       );
-    case "/store":
-      return MaterialPageRoute(
-        builder: (BuildContext context) {
-          return StorePage();
-        },
-      );
+    // case "/store":
+    //   return MaterialPageRoute(
+    //     builder: (BuildContext context) {
+    //       return StorePage();
+    //     },
+    //   );
 
     case "/order-history":
       return MaterialPageRoute(builder: (context) => OrderHistoryPage());

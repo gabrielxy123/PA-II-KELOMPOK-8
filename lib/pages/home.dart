@@ -40,7 +40,7 @@ class _HomeState extends State<Home> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.18.9:8000/api/laundry'),
+        Uri.parse('http://172.30.43.103:8000/api/laundry'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

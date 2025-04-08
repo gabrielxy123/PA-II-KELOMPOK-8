@@ -35,6 +35,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Riwayat Transaksi'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
@@ -118,7 +122,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                     MaterialPageRoute(
                       builder: (context) => OrderReviewPage(
                         laundryName: laundryName,
-                        orderId: orderNumber, // Gunakan orderNumber sebagai ID pesanan
+                        orderId:
+                            orderNumber, // Gunakan orderNumber sebagai ID pesanan
                       ),
                     ),
                   );
@@ -139,9 +144,24 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                         orderDate: '25 Februari 2025',
                         status: status,
                         products: [
-                          {'name': 'Kaos', 'quantity': 3, 'unitPrice': 7000, 'totalPrice': 21000},
-                          {'name': 'Kemeja', 'quantity': 3, 'unitPrice': 9000, 'totalPrice': 27000},
-                          {'name': 'Celana', 'quantity': 3, 'unitPrice': 10000, 'totalPrice': 30000},
+                          {
+                            'name': 'Kaos',
+                            'quantity': 3,
+                            'unitPrice': 7000,
+                            'totalPrice': 21000
+                          },
+                          {
+                            'name': 'Kemeja',
+                            'quantity': 3,
+                            'unitPrice': 9000,
+                            'totalPrice': 27000
+                          },
+                          {
+                            'name': 'Celana',
+                            'quantity': 3,
+                            'unitPrice': 10000,
+                            'totalPrice': 30000
+                          },
                         ],
                         extraCost: 5000,
                         totalCost: 220000,

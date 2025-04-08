@@ -46,10 +46,8 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
             Navigator.pushReplacementNamed(context, '/order-history');
             break;
           case 2:
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => StorePage()),
-            );
+            Navigator.pushReplacementNamed(context, '/store');
+            break;
 
             break;
           case 3:
