@@ -242,7 +242,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       // Create a multipart request
       var request = http.MultipartRequest(
-          'POST', Uri.parse('http://172.27.80.104:8000/api/upload-profile-image'));
+          'POST', Uri.parse('http://172.27.80.70:8000/api/upload-profile-image'));
 
       // Add authorization header
       request.headers['Authorization'] = 'Bearer $token';
@@ -301,7 +301,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://172.27.80.104:8000/api/user-profil'),
+        Uri.parse('http://172.27.80.70:8000/api/user-profil'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -346,7 +346,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Updating profile with email: ${emailController.text} and phone: ${phoneController.text}');
 
       final response = await http.post(
-        Uri.parse('http://172.30.40.71:8000/api/update-profile'),
+        Uri.parse('http://172.27.80.70:8000/api/update-profile'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
