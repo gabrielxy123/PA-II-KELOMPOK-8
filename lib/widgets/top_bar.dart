@@ -8,11 +8,11 @@ class TopBarWidget extends StatefulWidget {
   final String? userProfileImage; // Gambar profil pengguna (jika sudah login)
 
   const TopBarWidget({
-    Key? key,
+    super.key,
     this.isLoggedIn = false,
     this.userName,
     this.userProfileImage,
-  }) : super(key: key);
+  });
 
   @override
   State<TopBarWidget> createState() => _TopBarWidgetState();

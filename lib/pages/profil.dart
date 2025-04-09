@@ -14,8 +14,8 @@ import 'package:crypto/crypto.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -242,7 +242,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       // Create a multipart request
       var request = http.MultipartRequest('POST',
-          Uri.parse('http://192.168.107.199:8000/api/upload-profile-image'));
+          Uri.parse('http://172.30.42.147:8000/api/upload-profile-image'));
 
       // Add authorization header
       request.headers['Authorization'] = 'Bearer $token';
@@ -301,7 +301,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.107.199:8000/api/user-profil'),
+        Uri.parse('http://172.30.42.147:8000/api/user-profil'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -346,7 +346,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Updating profile with email: ${emailController.text} and phone: ${phoneController.text}');
 
       final response = await http.post(
-        Uri.parse('http://192.168.107.199:8000/api/update-profile'),
+        Uri.parse('http://172.30.42.147:8000/api/update-profile'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -668,7 +668,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 Spacer(),
                 isEditing
-                    ? Container(
+                    ? SizedBox(
                         width: 200,
                         child: TextField(
                           controller: emailController,
@@ -731,7 +731,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 Spacer(),
                 isEditing
-                    ? Container(
+                    ? SizedBox(
                         width: 200,
                         child: TextField(
                           controller: phoneController,
@@ -795,10 +795,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           userProfileFuture = fetchUserProfile();
                         });
                       },
-                      child: Text("Batal"),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.grey.shade700,
                       ),
+                      child: Text("Batal"),
                     ),
                     SizedBox(width: 8),
                     ElevatedButton(
@@ -944,7 +944,7 @@ class _ProfilePageState extends State<ProfilePage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Navigate to store registration
+                  Navigator.pushNamed(context, "/register_toko");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Constants.primaryColor,

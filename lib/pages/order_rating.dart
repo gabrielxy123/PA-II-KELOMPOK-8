@@ -5,10 +5,10 @@ class OrderReviewPage extends StatefulWidget {
   final String orderId;
 
   const OrderReviewPage({
-    Key? key,
+    super.key,
     required this.laundryName,
     required this.orderId,
-  }) : super(key: key);
+  });
 
   @override
   _OrderReviewPageState createState() => _OrderReviewPageState();

@@ -10,14 +10,14 @@ import 'package:carilaundry2/pages/order_history.dart';
 class Dashboard extends StatefulWidget {
   static const routeName = '/dashboard';
   final String? userName;
-  const Dashboard({Key? key, this.userName}) : super(key: key);
+  const Dashboard({super.key, this.userName});
 
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
-  int _selectedIndex = 0;
+  final int _selectedIndex = 0;
   int _currentBannerIndex = 0;
   final PageController _pageController = PageController();
   String? userName;
@@ -110,13 +110,13 @@ class _DashboardState extends State<Dashboard> {
                         title: 'Laundry Sepatu',
                         logoAsset: 'assets/images/agian.png',
                         description: 'okokok.',
-                        price: 'Rp.15.000.00',
+                        price: 'Pesan Sekarang',
                       ),
                       LaundryServiceCardWidget(
                         title: 'Laundry Cover',
                         logoAsset: 'assets/images/fanya.png',
                         description: 'okokok.',
-                        price: 'Rp.25.000.00',
+                        price: 'Pesan Sekarang',
                       ),
                     ];
                     return services[index % services.length];

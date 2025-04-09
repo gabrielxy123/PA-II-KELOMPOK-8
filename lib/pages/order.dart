@@ -8,7 +8,7 @@ import 'package:carilaundry2/widgets/laundry_card.dart';
 import 'package:carilaundry2/widgets/banner_widget.dart';
 
 class OrderHistoryPage extends StatefulWidget {
-  const OrderHistoryPage({Key? key}) : super(key: key);
+  const OrderHistoryPage({super.key});
 
   @override
   _OrderHistoryPageState createState() => _OrderHistoryPageState();

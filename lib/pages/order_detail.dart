@@ -16,7 +16,7 @@ class OrderDetailPage extends StatelessWidget {
   final int totalCost;
 
   const OrderDetailPage({
-    Key? key,
+    super.key,
     required this.customerName,
     required this.orderNumber,
     required this.orderDate,
@@ -24,7 +24,7 @@ class OrderDetailPage extends StatelessWidget {
     required this.products,
     required this.extraCost,
     required this.totalCost,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

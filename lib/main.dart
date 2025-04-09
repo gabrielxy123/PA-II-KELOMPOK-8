@@ -1,4 +1,3 @@
-import 'package:carilaundry2/pages/order_menu.dart';
 import 'package:carilaundry2/pages/register.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,11 +10,9 @@ import 'package:carilaundry2/pages/single_order.dart';
 import 'package:carilaundry2/pages/main_container.dart';
 import 'package:carilaundry2/utils/constants.dart';
 import 'package:carilaundry2/pages/order_history.dart';
-<<<<<<< HEAD
-=======
-import 'package:carilaundry2/pages/notifikasi.dart';
 import 'package:carilaundry2/pages/order_menu.dart';
->>>>>>> 50e5e7cecd76ca054eca75e763256f4db3c95ef1
+import 'package:carilaundry2/pages/halaman_toko.dart';
+import 'package:carilaundry2/pages/register_toko.dart';
 
 // Global key for app-wide SnackBars
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -26,6 +23,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -100,16 +99,14 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
           return MainContainer(initialIndex: 3);
         },
       );
-    
     case "/order-history":
       return MaterialPageRoute(builder: (context) => OrderHistoryPage());
-<<<<<<< HEAD
-=======
-
     case "/order-menu":
       return MaterialPageRoute(builder: (context) => OrderDetailScreen());
-    
->>>>>>> 50e5e7cecd76ca054eca75e763256f4db3c95ef1
+    case "/halaman-toko":
+      return MaterialPageRoute(builder: (context) => TokoPage());
+    case "/register-toko":
+      return MaterialPageRoute(builder: (context) => FormTokoPage());
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {

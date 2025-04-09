@@ -7,10 +7,10 @@ class BottomNavigationBarWidget extends StatefulWidget {
   final ValueChanged<int> onItemTapped;
 
   const BottomNavigationBarWidget({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onItemTapped,
-  }) : super(key: key);
+  });
 
   @override
   State<BottomNavigationBarWidget> createState() => _BottomNavigationBarWidgetState();
@@ -44,7 +44,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
             Navigator.pushReplacementNamed(context, '/order-history');
             break;
           case 2:
-            Navigator.pushReplacementNamed(context, '/toko');
+            Navigator.pushReplacementNamed(context, '/halama-toko');
             break;
           case 3:
             Navigator.pushReplacementNamed(context, '/user-profil');

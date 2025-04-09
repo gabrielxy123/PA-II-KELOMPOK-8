@@ -20,6 +20,8 @@ class LatestOrders extends StatelessWidget {
       status: OrderStatus.PICKING_UP,
     )
   ];
+
+  const LatestOrders({super.key});
   @override
   Widget build(BuildContext context) {
     return Container(

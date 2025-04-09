@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:carilaundry2/models/location.dart';
 
 class LocationSlider extends StatelessWidget {
+  const LocationSlider({super.key});
+
   @override
   Widget build(BuildContext context) {
     // Model to represent each card
@@ -22,7 +24,7 @@ class LocationSlider extends StatelessWidget {
         imagePath: "assets/images/house2.png",
       )
     ];
-    return Container(
+    return SizedBox(
       height: ScreenUtil().setHeight(90.0),
       child: ListView.separated(
         physics: BouncingScrollPhysics(),
@@ -58,7 +60,7 @@ class LocationSlider extends StatelessWidget {
                     child: Opacity(
                       opacity: 0.69,
                       child: Image.asset(
-                        locations[index]!.imagePath!,
+                        locations[index].imagePath!,
                       ),
                     ),
                   ),

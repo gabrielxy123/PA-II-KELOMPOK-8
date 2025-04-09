@@ -13,9 +13,9 @@ class MainContainer extends StatefulWidget {
   final int initialIndex;
 
   const MainContainer({
-    Key? key,
+    super.key,
     this.initialIndex = 0,
-  }) : super(key: key);
+  });
 
   @override
   State<MainContainer> createState() => _MainContainerState();

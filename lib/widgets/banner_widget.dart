@@ -6,11 +6,11 @@ class BannerCarouselWidget extends StatefulWidget {
   final Function(int) onPageChanged;
 
   const BannerCarouselWidget({
-    Key? key,
+    super.key,
     required this.pageController,
     required this.currentBannerIndex,
     required this.onPageChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<BannerCarouselWidget> createState() => _BannerCarouselWidgetState();
