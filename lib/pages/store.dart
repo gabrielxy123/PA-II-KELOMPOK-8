@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carilaundry2/widgets/search_bar.dart';
-import 'package:carilaundry2/pages/store_detail.dart';
-import 'package:carilaundry2/widgets/laundry_card.dart';
+import 'package:carilaundry2/widgets/toko_card.dart';
 
 class StorePage extends StatefulWidget {
   @override
@@ -83,13 +82,13 @@ class _StorePageState extends State<StorePage> {
               mainAxisSpacing: 16,
               childAspectRatio: 0.6, // Adjust card aspect ratio
               children: [
-                LaundryServiceCardWidget(
+                TokoCardWidget(
                   title: 'Laundry Agian',
                   logoAsset: 'assets/images/agian.png',
                   description: 'Jl. PI DEL Laguboti',
                   price: 'Cek Detail',
                 ),
-                LaundryServiceCardWidget(
+                TokoCardWidget(
                   title: 'Laundry Fanya',
                   logoAsset: 'assets/images/fanya.png',
                   description: 'Jl. PI Del Laguboti',

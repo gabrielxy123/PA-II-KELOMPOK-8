@@ -13,6 +13,10 @@ import 'package:carilaundry2/pages/order_history.dart';
 import 'package:carilaundry2/pages/notifikasi.dart';
 import 'package:carilaundry2/pages/order_menu.dart';
 import 'package:carilaundry2/pages/store.dart';
+import 'package:carilaundry2/pages/store_profile.dart';
+import 'package:carilaundry2/pages/register_toko.dart';
+
+
 
 // Global key for app-wide SnackBars
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -109,6 +113,12 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (context) => OrderHistoryPage());
     case "/order-menu":
       return MaterialPageRoute(builder: (context) => OrderDetailScreen());
+
+    case "/toko-profile":
+      return MaterialPageRoute(builder: (context) => StoreProfilePage());
+
+    case "/registrasi-toko":
+      return MaterialPageRoute(builder: (context) => FormTokoPage());
 
     default:
       return MaterialPageRoute(

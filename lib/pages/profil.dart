@@ -889,7 +889,7 @@ class _ProfilePageState extends State<ProfilePage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Navigate to store registration
+                  Navigator.pushNamed(context, "/registrasi-toko");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Constants.primaryColor,
