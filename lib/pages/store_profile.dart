@@ -7,7 +7,7 @@ class StoreProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Profil Toko - Laundry Fanya",
+          "Profil Toko - Laundry Agian",
           style: TextStyle(fontSize: 16, color: Colors.white),
         ),
         backgroundColor: const Color(0xFF006A55),
@@ -94,8 +94,8 @@ class StoreProfilePage extends StatelessWidget {
                   _buildDetailSection("Jam Operasional", "08.00 - 17.00"),
                   const SizedBox(height: 16),
                   _buildDetailSection("Kontak", ""),
-                  _buildContactRow("Whatsapp", "081234567890", Icons.phone),
-                  _buildContactRow("Facebook", "Laundry Fanya", Icons.facebook),
+                  _buildContactRow("Whatsapp", "081234567890", Icons.phone_android_rounded),
+                  _buildContactRow("Facebook", "Laundry Agian", Icons.facebook),
                 ],
               ),
             ),

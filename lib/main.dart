@@ -1,32 +1,38 @@
 import 'package:carilaundry2/pages/order_menu.dart';
 import 'package:carilaundry2/pages/register.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carilaundry2/pages/dashboard.dart';
 import 'package:carilaundry2/pages/login.dart';
-import 'package:carilaundry2/pages/profil.dart';
+// import 'package:carilaundry2/pages/profil.dart';
 import 'package:carilaundry2/pages/single_order.dart';
 import 'package:carilaundry2/pages/main_container.dart';
 import 'package:carilaundry2/utils/constants.dart';
 import 'package:carilaundry2/pages/order_history.dart';
 import 'package:carilaundry2/pages/notifikasi.dart';
-import 'package:carilaundry2/pages/order_menu.dart';
-import 'package:carilaundry2/pages/store.dart';
+// import 'package:carilaundry2/pages/order_menu.dart';
+// import 'package:carilaundry2/pages/store.dart';
 import 'package:carilaundry2/pages/store_profile.dart';
 import 'package:carilaundry2/pages/register_toko.dart';
-
+import 'package:carilaundry2/service/notification_service.dart';
 
 
 // Global key for app-wide SnackBars
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
-void main() {
-  runApp(MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await NotificationService.instance.initialize();  
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "988731056473",
+    "project_id": "cari-laundry-30f43",
+    "storage_bucket": "cari-laundry-30f43.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:988731056473:android:01136955ace25bd6636c48",
+        "android_client_info": {
+          "package_name": "com.example.cari_laundry"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0ZXX9Simir2F99b5kbM9YIccYd6wfpUg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
