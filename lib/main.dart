@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carilaundry2/pages/dashboard.dart';
-import 'package:carilaundry2/pages/home.dart';
 import 'package:carilaundry2/pages/login.dart';
 import 'package:carilaundry2/pages/profil.dart';
 import 'package:carilaundry2/pages/single_order.dart';
@@ -13,6 +12,12 @@ import 'package:carilaundry2/pages/order_history.dart';
 import 'package:carilaundry2/pages/order_menu.dart';
 import 'package:carilaundry2/pages/halaman_toko.dart';
 import 'package:carilaundry2/pages/register_toko.dart';
+import 'package:carilaundry2/pages/notifikasi.dart';
+import 'package:carilaundry2/pages/order_menu.dart';
+import 'package:carilaundry2/pages/store.dart';
+import 'package:carilaundry2/pages/store_profile.dart';
+import 'package:carilaundry2/pages/register_toko.dart';
+
 
 // Global key for app-wide SnackBars
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -50,12 +55,6 @@ class MyApp extends StatelessWidget {
 
 Route<dynamic> _onGenerateRoute(RouteSettings settings) {
   switch (settings.name) {
-    case "/":
-      return MaterialPageRoute(
-        builder: (BuildContext context) {
-          return Home();
-        },
-      );
     case "/login":
       return MaterialPageRoute(
         builder: (BuildContext context) {
@@ -87,18 +86,32 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
           return MainContainer(initialIndex: 1);
         },
       );
-    case "/toko":
+    case "/store":
       return MaterialPageRoute(
         builder: (BuildContext context) {
           return MainContainer(initialIndex: 2);
         },
       );
+
     case "/user-profil":
       return MaterialPageRoute(
         builder: (BuildContext context) {
           return MainContainer(initialIndex: 3);
         },
       );
+    case "/notification":
+      return MaterialPageRoute(
+        builder: (BuildContext context) {
+          return NotificationScreen();
+        },
+      );
+    // case "/store":
+    //   return MaterialPageRoute(
+    //     builder: (BuildContext context) {
+    //       return StorePage();
+    //     },
+    //   );
+
     case "/order-history":
       return MaterialPageRoute(builder: (context) => OrderHistoryPage());
     case "/order-menu":
@@ -106,6 +119,10 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
     case "/halaman-toko":
       return MaterialPageRoute(builder: (context) => TokoPage());
     case "/register-toko":
+      return MaterialPageRoute(builder: (context) => FormTokoPage());
+    case "/toko-profile":
+      return MaterialPageRoute(builder: (context) => StoreProfilePage());
+    case "/registrasi-toko":
       return MaterialPageRoute(builder: (context) => FormTokoPage());
     default:
       return MaterialPageRoute(

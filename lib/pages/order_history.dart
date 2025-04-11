@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carilaundry2/pages/order_detail.dart';
 import 'package:carilaundry2/pages/order_rating.dart';
-import 'package:carilaundry2/pages/dashboard.dart';
 import 'package:carilaundry2/widgets/bottom_navigation.dart';
-import 'package:carilaundry2/widgets/search_bar.dart';
-import 'package:carilaundry2/widgets/top_bar.dart';
-import 'package:carilaundry2/widgets/laundry_card.dart';
-import 'package:carilaundry2/widgets/banner_widget.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
@@ -18,6 +13,7 @@ class OrderHistoryPage extends StatefulWidget {
 class _OrderHistoryPageState extends State<OrderHistoryPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  int _selectedIndex = 1;
 
   @override
   void initState() {
@@ -79,6 +75,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
           ),
         ],
       ),
+      bottomNavigationBar: BottomNavigationBarWidget(
+          selectedIndex: _selectedIndex, onItemTapped: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          }
+          ),
     );
   }
 
@@ -110,51 +113,77 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
             ),
           ],
         ),
-        trailing: isCompleted
-            ? ElevatedButton(
-                onPressed: () {
-                  // Navigasi ke halaman penilaian (rating)
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OrderReviewPage(
-                        laundryName: laundryName,
-                        orderId: orderNumber, // Gunakan orderNumber sebagai ID pesanan
-                      ),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Total Pesanan: 2',
+              style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        isCompleted
+        ? ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderReviewPage(
+                    laundryName: laundryName,
+                    orderId: orderNumber,
+                  ),
                 ),
-                child: const Text('Beri Penilaian'),
-              )
-            : InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OrderDetailPage(
-                        customerName: 'Budi Soetomo',
-                        orderNumber: orderNumber,
-                        orderDate: '25 Februari 2025',
-                        status: status,
-                        products: [
-                          {'name': 'Kaos', 'quantity': 3, 'unitPrice': 7000, 'totalPrice': 21000},
-                          {'name': 'Kemeja', 'quantity': 3, 'unitPrice': 9000, 'totalPrice': 27000},
-                          {'name': 'Celana', 'quantity': 3, 'unitPrice': 10000, 'totalPrice': 30000},
-                        ],
-                        extraCost: 5000,
-                        totalCost: 220000,
-                      ),
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Lihat Selengkapnya',
-                  style: TextStyle(color: Colors.blue),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+            child: const Text('Beri Penilaian'),
+          )
+        : InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderDetailPage(
+                    customerName: 'Budi Soetomo',
+                    orderNumber: orderNumber,
+                    orderDate: '25 Februari 2025',
+                    status: status,
+                    products: [
+                      {
+                        'name': 'Kaos',
+                        'quantity': 3,
+                        'unitPrice': 7000,
+                        'totalPrice': 21000
+                      },
+                      {
+                        'name': 'Kemeja',
+                        'quantity': 3,
+                        'unitPrice': 9000,
+                        'totalPrice': 27000
+                      },
+                      {
+                        'name': 'Celana',
+                        'quantity': 3,
+                        'unitPrice': 10000,
+                        'totalPrice': 30000
+                      },
+                    ],
+                    extraCost: 5000,
+                    totalCost: 220000,
+                  ),
                 ),
-              ),
+              );
+            },
+            child: const Text(
+              'Lihat Selengkapnya',
+              style: TextStyle(color: Colors.blue),
+            ),
+          ),
+          ],
+        ),
       ),
     );
   }

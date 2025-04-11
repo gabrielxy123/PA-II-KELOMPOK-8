@@ -9,13 +9,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:carilaundry2/main.dart';
 import 'package:app_settings/app_settings.dart';
-import 'package:device_info_plus/device_info_plus.dart';
+import 'package:carilaundry2/core/apiConstant.dart';
+// import 'package:device_info_plus/device_info_plus.dart';
 import 'package:crypto/crypto.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -34,7 +35,6 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     userProfileFuture = _checkLoginAndFetchProfile();
-    _requestPermissions();
   }
 
   Future<UserProfile?> _checkLoginAndFetchProfile() async {
@@ -55,23 +55,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _requestPermissions() async {
-    try {
-      // Request all necessary permissions
-      Map<Permission, PermissionStatus> statuses = await [
-        Permission.camera,
-        Permission.storage,
-        Permission.photos,
-      ].request();
-
-      print("Camera permission: ${statuses[Permission.camera]}");
-      print("Storage permission: ${statuses[Permission.storage]}");
-      print("Photos permission: ${statuses[Permission.photos]}");
-    } catch (e) {
-      print("Error requesting permissions: $e");
-    }
-  }
-
   void _showSnackBar(String message, Color backgroundColor) {
     // Clear any existing SnackBars
     rootScaffoldMessengerKey.currentState?.clearSnackBars();
@@ -88,44 +71,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      // Check and request permissions based on source
-      bool hasPermission = false;
-      if (source == ImageSource.camera) {
-        hasPermission = await Permission.camera.request().isGranted;
-      } else {
-        // For gallery access, try both storage and photos permissions
-        hasPermission = await Permission.storage.request().isGranted ||
-            await Permission.photos.request().isGranted;
-      }
-
-      if (!hasPermission) {
-        // Show dialog to guide user to settings
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Izin Diperlukan'),
-            content: Text(
-              'Aplikasi membutuhkan izin untuk mengakses ${source == ImageSource.camera ? 'kamera' : 'galeri'}. '
-              'Silakan aktifkan izin di pengaturan aplikasi.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Batal'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await AppSettings.openAppSettings();
-                },
-                child: Text('Buka Pengaturan'),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-
       final pickedFile = await _picker.pickImage(
         source: source,
         imageQuality: 70,
@@ -241,8 +186,8 @@ class _ProfilePageState extends State<ProfilePage> {
       print('Preparing to upload image to Laravel server...');
 
       // Create a multipart request
-      var request = http.MultipartRequest('POST',
-          Uri.parse('http://172.30.42.147:8000/api/upload-profile-image'));
+      var request = http.MultipartRequest(
+          'POST', Uri.parse('${Apiconstant.BASE_URL}/upload-profile-image'));
 
       // Add authorization header
       request.headers['Authorization'] = 'Bearer $token';
@@ -301,7 +246,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://172.30.42.147:8000/api/user-profil'),
+        Uri.parse('${Apiconstant.BASE_URL}/user-profil'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -346,7 +291,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Updating profile with email: ${emailController.text} and phone: ${phoneController.text}');
 
       final response = await http.post(
-        Uri.parse('http://172.30.42.147:8000/api/update-profile'),
+        Uri.parse('${Apiconstant.BASE_URL}/update-profile'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -668,7 +613,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 Spacer(),
                 isEditing
-                    ? SizedBox(
+                    ? Container(
                         width: 200,
                         child: TextField(
                           controller: emailController,
@@ -731,7 +676,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 Spacer(),
                 isEditing
-                    ? SizedBox(
+                    ? Container(
                         width: 200,
                         child: TextField(
                           controller: phoneController,
@@ -795,10 +740,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           userProfileFuture = fetchUserProfile();
                         });
                       },
+                      child: Text("Batal"),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.grey.shade700,
                       ),
-                      child: Text("Batal"),
                     ),
                     SizedBox(width: 8),
                     ElevatedButton(
@@ -944,7 +889,7 @@ class _ProfilePageState extends State<ProfilePage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, "/register_toko");
+                  Navigator.pushNamed(context, "/registrasi-toko");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Constants.primaryColor,

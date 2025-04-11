@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carilaundry2/utils/constants.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:carilaundry2/pages/store.dart';
 
 class BottomNavigationBarWidget extends StatefulWidget {
   final int selectedIndex;
@@ -13,7 +14,8 @@ class BottomNavigationBarWidget extends StatefulWidget {
   });
 
   @override
-  State<BottomNavigationBarWidget> createState() => _BottomNavigationBarWidgetState();
+  State<BottomNavigationBarWidget> createState() =>
+      _BottomNavigationBarWidgetState();
 }
 
 class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
@@ -38,16 +40,17 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
 
         switch (index) {
           case 0:
-            Navigator.pushReplacementNamed(context, '/dashboard');
+            Navigator.pushReplacementNamed(context, "/dashboard");
             break;
           case 1:
-            Navigator.pushReplacementNamed(context, '/order-history');
+            Navigator.pushReplacementNamed(context, "/order-history");
             break;
           case 2:
             Navigator.pushReplacementNamed(context, '/halama-toko');
+            Navigator.pushReplacementNamed(context, '/store');
             break;
           case 3:
-            Navigator.pushReplacementNamed(context, '/user-profil');
+            Navigator.pushReplacementNamed(context, "/user-profil");
             break;
         }
       },
@@ -57,7 +60,9 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   Widget _buildNavItem(IconData icon, IconData activeIcon) {
     return Icon(
       widget.selectedIndex == _getIndex(icon) ? activeIcon : icon,
-      color: widget.selectedIndex == _getIndex(icon) ? Constants.primaryColor : Colors.grey.shade600,
+      color: widget.selectedIndex == _getIndex(icon)
+          ? Constants.primaryColor
+          : Colors.grey.shade600,
       size: 28,
     );
   }
