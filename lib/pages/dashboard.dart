@@ -5,7 +5,7 @@ import 'package:carilaundry2/widgets/top_bar.dart';
 import 'package:carilaundry2/widgets/laundry_card.dart';
 import 'package:carilaundry2/widgets/banner_widget.dart';
 import 'package:carilaundry2/pages/order_history.dart';
-import 'package:carilaundry2/pages/notifikasi.dart';
+// import 'package:carilaundry2/pages/notifikasi.dart';
 
 class Dashboard extends StatefulWidget {
   static const routeName = '/dashboard';
@@ -26,7 +26,7 @@ class _DashboardState extends State<Dashboard> {
   void initState() {
     super.initState();
     userName = widget.userName;
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is String) {
@@ -35,7 +35,7 @@ class _DashboardState extends State<Dashboard> {
         });
       }
     });
-    
+
     Future.delayed(const Duration(seconds: 3), _autoScrollBanner);
   }
 
@@ -72,8 +72,20 @@ class _DashboardState extends State<Dashboard> {
               child: Column(
                 children: [
                   TopBarWidget(
-                    isLoggedIn: userName != null, 
+                    isLoggedIn: userName != null,
                     userName: userName,
+                    // onNotificationTap: () {
+                    //   Navigator.pushNamed(
+                    //     context,
+                    //     "/notifikasi",
+                    //     arguments: {
+                    //       'notifications': [
+                    //         "Pesanan #123 telah selesai!",
+                    //         "Promo diskon 20% untuk pelanggan baru!"
+                    //       ]
+                    //     },
+                    //   );
+                    // },
                   ),
                   const SearchBarWidget(),
                   BannerCarouselWidget(
@@ -104,7 +116,7 @@ class _DashboardState extends State<Dashboard> {
                         title: 'Laundry Cover',
                         logoAsset: 'assets/images/fanya.png',
                         description: 'okokok.',
-                        price: 'Rp.Pesan Sekarang',
+                        price: 'Pesan Sekarang',
                       ),
                     ];
                     return services[index % services.length];
@@ -122,20 +134,6 @@ class _DashboardState extends State<Dashboard> {
           ],
         ),
       ),
-      // bottomNavigationBar: BottomNavigationBarWidget(
-      //   selectedIndex: _selectedIndex,
-      //   onItemTapped: (index) {
-      //     setState(() {
-      //       _selectedIndex = index;
-      //     });
-      //     if (index == 2) {
-      //       Navigator.push(
-      //         context,
-      //         MaterialPageRoute(builder: (context) => OrderHistoryPage()),
-      //       );
-      //     } 
-      //   },
-      // ),
     );
   }
 }

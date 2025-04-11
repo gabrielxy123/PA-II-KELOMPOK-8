@@ -39,7 +39,9 @@ class _HomeState extends State<Home> {
       }
 
       final response = await http.get(
-        Uri.parse('http://172.27.80.70:8000/api/laundry'),
+
+        Uri.parse('http://192.168.43.85:8000/api/laundry'),
+
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -286,8 +288,7 @@ class _HomeState extends State<Home> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Navigate to search page
-          Navigator.of(context)
-            .pushNamed("/dashboard");
+          Navigator.of(context).pushNamed("/dashboard");
         },
         backgroundColor: Constants.primaryColor,
         child: Icon(Icons.search, color: Colors.white),

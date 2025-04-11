@@ -11,8 +11,7 @@ import 'package:carilaundry2/pages/single_order.dart';
 import 'package:carilaundry2/pages/main_container.dart';
 import 'package:carilaundry2/utils/constants.dart';
 import 'package:carilaundry2/pages/order_history.dart';
-import 'package:carilaundry2/pages/notifikasi.dart';
-import 'package:carilaundry2/pages/order_menu.dart';
+
 
 // Global key for app-wide SnackBars
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -103,11 +102,11 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
 
     case "/order-menu":
       return MaterialPageRoute(builder: (context) => OrderDetailScreen());
-    
+
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {
-          return Home();
+          return Dashboard();
         },
       );
   }
