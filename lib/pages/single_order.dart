@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:carilaundry2/utils/constants.dart';
 
 class SingleOrder extends StatefulWidget {
+  const SingleOrder({super.key});
+
   @override
   _SingleOrderState createState() => _SingleOrderState();
 }

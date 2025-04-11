@@ -1,4 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:carilaundry2/pages/order_detail.dart';
+import 'package:carilaundry2/pages/order_rating.dart';
+import 'package:carilaundry2/pages/dashboard.dart';
+import 'package:carilaundry2/widgets/bottom_navigation.dart';
+import 'package:carilaundry2/widgets/search_bar.dart';
+import 'package:carilaundry2/widgets/top_bar.dart';
+import 'package:carilaundry2/widgets/laundry_card.dart';
+import 'package:carilaundry2/widgets/banner_widget.dart';
 
 void main() {
   runApp(const MyApp());

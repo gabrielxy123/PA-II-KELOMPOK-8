@@ -7,15 +7,16 @@ class LaundryServiceCardWidget extends StatefulWidget {
   final String price;
 
   const LaundryServiceCardWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.logoAsset,
     required this.description,
     required this.price,
-  }) : super(key: key);
+  });
 
   @override
-  State<LaundryServiceCardWidget> createState() => _LaundryServiceCardWidgetState();
+  State<LaundryServiceCardWidget> createState() =>
+      _LaundryServiceCardWidgetState();
 }
 
 class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
@@ -60,14 +61,15 @@ class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
           Expanded(
             flex: 2,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.title,
                     style: const TextStyle(
-                      fontSize:15,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
