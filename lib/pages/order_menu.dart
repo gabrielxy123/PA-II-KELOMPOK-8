@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carilaundry2/widgets/service_type.dart';
-import '../widgets/clothing_item.dart';
-import '../widgets/additional_service_item.dart';
+import 'package:carilaundry2/widgets/clothing_item.dart';
+import 'package:carilaundry2/widgets/additional_service_item.dart';
 import 'package:carilaundry2/widgets/bottom_navigation.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -70,7 +70,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nota Laundry'),
+        title: const Text('Pesan Laundry'),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -218,7 +218,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ),
                         ),
                         child: const Text(
-                          'Buat Nota',
+                          'Pesan Sekarang',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
