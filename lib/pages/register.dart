@@ -7,6 +7,8 @@ import 'package:carilaundry2/widgets/custom_snackbar.dart';
 import 'package:http/http.dart' as http;
 
 class Register extends StatefulWidget {
+  const Register({super.key});
+
   @override
   _RegisterState createState() => _RegisterState();
 }

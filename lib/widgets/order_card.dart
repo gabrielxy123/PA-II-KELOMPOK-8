@@ -8,7 +8,7 @@ import 'package:carilaundry2/utils/helper.dart';
 class OrderCard extends StatelessWidget {
   final Order? order;
 
-  OrderCard({this.order});
+  OrderCard({super.key, this.order});
 
   // For formatting date
   final DateFormat formatter = DateFormat("yyyy MM dd");

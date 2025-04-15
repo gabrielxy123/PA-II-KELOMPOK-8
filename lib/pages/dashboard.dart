@@ -13,14 +13,15 @@ import 'package:provider/provider.dart';
 
 class Dashboard extends StatefulWidget {
   static const routeName = '/dashboard';
-  const Dashboard({Key? key}) : super(key: key);
+  final String? userName;
+  const Dashboard({super.key, this.userName});
 
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
-  int _selectedIndex = 0;
+  final int _selectedIndex = 0;
   int _currentBannerIndex = 0;
   final PageController _pageController = PageController();
 

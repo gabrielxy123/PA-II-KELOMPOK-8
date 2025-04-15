@@ -1,4 +1,3 @@
-import 'package:carilaundry2/pages/order_menu.dart';
 import 'package:carilaundry2/pages/register.dart';
 import 'package:carilaundry2/pages/store_detail.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,6 +11,9 @@ import 'package:carilaundry2/pages/single_order.dart';
 import 'package:carilaundry2/pages/main_container.dart';
 import 'package:carilaundry2/utils/constants.dart';
 import 'package:carilaundry2/pages/order_history.dart';
+import 'package:carilaundry2/pages/order_menu.dart';
+import 'package:carilaundry2/pages/halaman_toko.dart';
+import 'package:carilaundry2/pages/register_toko.dart';
 import 'package:carilaundry2/pages/notifikasi.dart';
 // import 'package:carilaundry2/pages/order_menu.dart';
 // import 'package:carilaundry2/pages/store.dart';
@@ -137,7 +139,10 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (context) => OrderHistoryPage());
     case "/order-menu":
       return MaterialPageRoute(builder: (context) => OrderDetailScreen());
-
+    case "/halaman-toko":
+      return MaterialPageRoute(builder: (context) => TokoPage());
+    case "/register-toko":
+      return MaterialPageRoute(builder: (context) => FormTokoPage());
     case "/toko-profile":
       return MaterialPageRoute(builder: (context) => StoreProfilePage());
 
@@ -146,7 +151,6 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
 
     case "/registrasi-toko":
       return MaterialPageRoute(builder: (context) => FormTokoPage());
-
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {

@@ -4,8 +4,30 @@ import 'package:carilaundry2/AuthProvider/auth_provider.dart'; // Pastikan path 
 import 'package:carilaundry2/pages/notifikasi.dart';
 import 'package:carilaundry2/pages/not_logged.dart';
 
-class TopBarWidget extends StatelessWidget {
-  const TopBarWidget({Key? key}) : super(key: key);
+class TopBarWidget extends StatefulWidget {
+  final bool isLoggedIn; // Status login
+  final String? userName; // Nama pengguna (jika sudah login)
+  final String? userProfileImage; // Gambar profil pengguna (jika sudah login)
+
+  const TopBarWidget({
+    super.key,
+    this.isLoggedIn = false,
+    this.userName,
+    this.userProfileImage,
+  });
+
+  @override
+  State<TopBarWidget> createState() => _TopBarWidgetState();
+}
+
+class _TopBarWidgetState extends State<TopBarWidget> {
+  @override
+  void initState() {
+    super.initState();
+    // Debug print to check if profile image URL is being passed correctly
+    print('TopBarWidget - isLoggedIn: ${widget.isLoggedIn}');
+    print('TopBarWidget - userProfileImage: ${widget.userProfileImage}');
+  }
 
   @override
   Widget build(BuildContext context) {
