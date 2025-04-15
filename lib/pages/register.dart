@@ -17,23 +17,23 @@ class _RegisterState extends State<Register> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
 
-  // ---------- LOADING DIALOG ----------
-  void _showLoadingDialog() {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-            ),
-          ],
+    // ---------- LOADING DIALOG ----------
+    void _showLoadingDialog() {
+      showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   // ---------- ERROR DIALOG ----------
   void _showErrorDialog(String message) {

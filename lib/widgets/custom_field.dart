@@ -6,6 +6,7 @@ class CustomField extends StatefulWidget {
   final bool isPassword;
   final TextInputType textInputType;
   final double radius;
+  final String? hintText;
 
   const CustomField({
     super.key,
@@ -14,6 +15,7 @@ class CustomField extends StatefulWidget {
     required this.isPassword,
     required this.textInputType,
     required this.radius,
+    this.hintText,
   });
 
   @override
