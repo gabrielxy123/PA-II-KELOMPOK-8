@@ -3,6 +3,9 @@ import 'package:carilaundry2/widgets/service_type.dart';
 import 'package:carilaundry2/widgets/clothing_item.dart';
 import 'package:carilaundry2/widgets/additional_service_item.dart';
 import 'package:carilaundry2/widgets/bottom_navigation.dart';
+import '../widgets/clothing_item.dart';
+import '../widgets/additional_service_item.dart';
+
 
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({super.key});

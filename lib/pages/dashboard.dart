@@ -10,14 +10,14 @@ import 'package:carilaundry2/widgets/banner_widget.dart';
 class Dashboard extends StatefulWidget {
   static const routeName = '/dashboard';
   final String? userName;
-  const Dashboard({Key? key, this.userName}) : super(key: key);
+  const Dashboard({super.key, this.userName});
 
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
-  int _selectedIndex = 0;
+  final int _selectedIndex = 0;
   int _currentBannerIndex = 0;
   final PageController _pageController = PageController();
   String? userName;
