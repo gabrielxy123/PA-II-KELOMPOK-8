@@ -62,10 +62,25 @@ class _TokoState extends State<FormTokoPage> {
             ),
             const SizedBox(height: 10),
             const Text(
+              "Selamat Datang di halaman formulir pendaftaran toko CariLaundry. Disini adalah titik awal untuk mendaftarkan toko anda.",
+              style: TextStyle(
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
               "* Menunjukkan kolom yang wajib diisi",
               style: TextStyle(color: Colors.red),
             ),
             const SizedBox(height: 20),
+            const Text(
+              "Nama Toko *",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
             CustomField(
               label: "*Nama Toko",
               controller: nameController,
@@ -73,7 +88,15 @@ class _TokoState extends State<FormTokoPage> {
               textInputType: TextInputType.text,
               radius: 10,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
+            const Text(
+              "Nomor Telepon *",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
             CustomField(
               label: "*Nomor Telepon",
               controller: noTelpController,
@@ -81,7 +104,15 @@ class _TokoState extends State<FormTokoPage> {
               textInputType: TextInputType.phone,
               radius: 12,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
+            const Text(
+              "Email (Contoh : abc@gmail.com) *",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
             CustomField(
               label: "*Email",
               controller: emailController,
@@ -89,7 +120,15 @@ class _TokoState extends State<FormTokoPage> {
               textInputType: TextInputType.emailAddress,
               radius: 12,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
+            const Text(
+              "Deskripsi Toko *",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
             CustomField(
               label: "*Deskripsi Toko",
               controller: deskripsiController,
@@ -102,9 +141,16 @@ class _TokoState extends State<FormTokoPage> {
               onPressed: _goToNextPage,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
+                backgroundColor: Colors.green.withOpacity(0.2), // 20% opacity
+                foregroundColor: Colors.green, // text color
+                elevation:
+                    0, // optional: remove shadow for a cleaner transparent look
               ),
-              child: const Text("Next"),
-            ),
+              child: const Text(
+                "Selanjutnya",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            )
           ],
         ),
       ),
