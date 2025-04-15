@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class NotLoggedScreen extends StatelessWidget {
+  
   const NotLoggedScreen({super.key});
+  
 
   @override
   Widget build(BuildContext context) {

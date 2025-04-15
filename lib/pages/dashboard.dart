@@ -1,16 +1,19 @@
+import 'package:carilaundry2/AuthProvider/auth_provider.dart';
 import 'package:flutter/material.dart';
 // import 'package:carilaundry2/widgets/bottom_navigation.dart';
 import 'package:carilaundry2/widgets/search_bar.dart';
 import 'package:carilaundry2/widgets/top_bar.dart';
 import 'package:carilaundry2/widgets/laundry_card.dart';
 import 'package:carilaundry2/widgets/banner_widget.dart';
+import 'package:carilaundry2/AuthProvider/auth_provider.dart';
+import 'package:provider/provider.dart';
+
 // import 'package:carilaundry2/pages/order_history.dart';
 // import 'package:carilaundry2/pages/notifikasi.dart';
 
 class Dashboard extends StatefulWidget {
   static const routeName = '/dashboard';
-  final String? userName;
-  const Dashboard({Key? key, this.userName}) : super(key: key);
+  const Dashboard({Key? key}) : super(key: key);
 
   @override
   State<Dashboard> createState() => _DashboardState();
@@ -20,22 +23,11 @@ class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 0;
   int _currentBannerIndex = 0;
   final PageController _pageController = PageController();
-  String? userName;
 
   @override
   void initState() {
     super.initState();
-    userName = widget.userName;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is String) {
-        setState(() {
-          userName = args;
-        });
-      }
-    });
-
+    
     Future.delayed(const Duration(seconds: 3), _autoScrollBanner);
   }
 
@@ -64,6 +56,8 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
@@ -71,22 +65,7 @@ class _DashboardState extends State<Dashboard> {
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  TopBarWidget(
-                    isLoggedIn: userName != null,
-                    userName: userName,
-                    // onNotificationTap: () {
-                    //   Navigator.pushNamed(
-                    //     context,
-                    //     "/notifikasi",
-                    //     arguments: {
-                    //       'notifications': [
-                    //         "Pesanan #123 telah selesai!",
-                    //         "Promo diskon 20% untuk pelanggan baru!"
-                    //       ]
-                    //     },
-                    //   );
-                    // },
-                  ),
+                  const TopBarWidget(),
                   const SearchBarWidget(),
                   BannerCarouselWidget(
                     pageController: _pageController,

@@ -94,7 +94,7 @@ class _TokoCardWidgetState extends State<TokoCardWidget> {
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, "/toko-profile");
+                Navigator.pushNamed(context, "/toko-detail");
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(156, 2, 103, 56),

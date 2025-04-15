@@ -1,3 +1,4 @@
+import 'package:carilaundry2/pages/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -6,9 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carilaundry2/models/userProfile.dart';
 import 'package:carilaundry2/utils/constants.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
+// import 'package:permission_handler/permission_handler.dart';
 import 'package:carilaundry2/main.dart';
-import 'package:app_settings/app_settings.dart';
+// import 'package:app_settings/app_settings.dart';
 import 'package:carilaundry2/core/apiConstant.dart';
 // import 'package:device_info_plus/device_info_plus.dart';
 import 'package:crypto/crypto.dart';
@@ -341,13 +342,8 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Constants.primaryColor,
-        title: Text("Akun Saya", style: TextStyle(color: Colors.white)),
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            color: Colors.white,
-            onPressed: () {
-              Navigator.pop(context);
-            }),
+        title: Text("Akun Saya", style: TextStyle(color: Colors.white)
+        ),
         automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<UserProfile?>(
