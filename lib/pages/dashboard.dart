@@ -5,7 +5,6 @@ import 'package:carilaundry2/widgets/search_bar.dart';
 import 'package:carilaundry2/widgets/top_bar.dart';
 import 'package:carilaundry2/widgets/laundry_card.dart';
 import 'package:carilaundry2/widgets/banner_widget.dart';
-import 'package:carilaundry2/AuthProvider/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 // import 'package:carilaundry2/pages/order_history.dart';

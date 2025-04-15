@@ -6,7 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carilaundry2/pages/dashboard.dart';
 import 'package:carilaundry2/pages/login.dart';
-// import 'package:carilaundry2/pages/profil.dart';
 import 'package:carilaundry2/pages/single_order.dart';
 import 'package:carilaundry2/pages/main_container.dart';
 import 'package:carilaundry2/utils/constants.dart';
@@ -15,10 +14,7 @@ import 'package:carilaundry2/pages/order_menu.dart';
 import 'package:carilaundry2/pages/halaman_toko.dart';
 import 'package:carilaundry2/pages/register_toko.dart';
 import 'package:carilaundry2/pages/notifikasi.dart';
-// import 'package:carilaundry2/pages/order_menu.dart';
-// import 'package:carilaundry2/pages/store.dart';
 import 'package:carilaundry2/pages/store_profile.dart';
-import 'package:carilaundry2/pages/register_toko.dart';
 import 'package:carilaundry2/service/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'package:carilaundry2/AuthProvider/auth_provider.dart';
@@ -31,12 +27,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  final authProvider = AuthProvider();
-  await authProvider.checkLoginStatus();
-
   runApp(
-    ChangeNotifierProvider<AuthProvider>(
-      create: (_) => authProvider,
+    ChangeNotifierProvider(
+      create: (_) => AuthProvider(),
       child: const MyApp(),
     ),
   );
@@ -47,31 +40,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(375, 812),
-      builder: (context, child) => MultiProvider(
-        providers: [
-          ChangeNotifierProvider<AuthProvider>(
-            create: (_) => AuthProvider(),
-          ),
-          // Tambahkan provider lain jika ada
-        ],
-        child: MaterialApp(
-          scaffoldMessengerKey: rootScaffoldMessengerKey,
-          debugShowCheckedModeBanner: false,
-          title: "Flutter Laundry UI",
-          theme: ThemeData(
-            scaffoldBackgroundColor: Constants.scaffoldBackgroundColor,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-            textTheme: GoogleFonts.poppinsTextTheme(),
-            snackBarTheme: const SnackBarThemeData(
-              behavior: SnackBarBehavior.fixed,
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    return FutureBuilder(
+      future: authProvider.checkLoginStatus(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const MaterialApp(
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator()),
             ),
+          );
+        }
+
+        return ScreenUtilInit(
+          designSize: const Size(375, 812),
+          builder: (context, child) => MaterialApp(
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
+            debugShowCheckedModeBanner: false,
+            title: "Flutter Laundry UI",
+            theme: ThemeData(
+              scaffoldBackgroundColor: Constants.scaffoldBackgroundColor,
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+              textTheme: GoogleFonts.poppinsTextTheme(),
+              snackBarTheme: const SnackBarThemeData(
+                behavior: SnackBarBehavior.fixed,
+              ),
+            ),
+            initialRoute: authProvider.isLoggedIn ? "/dashboard" : "/login",
+            onGenerateRoute: _onGenerateRoute,
           ),
-          initialRoute: "/dashboard",
-          onGenerateRoute: _onGenerateRoute,
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -115,7 +115,6 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
           return MainContainer(initialIndex: 2);
         },
       );
-
     case "/user-profil":
       return MaterialPageRoute(
         builder: (BuildContext context) {
@@ -128,13 +127,6 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
           return NotificationScreen();
         },
       );
-    // case "/store":
-    //   return MaterialPageRoute(
-    //     builder: (BuildContext context) {
-    //       return StorePage();
-    //     },
-    //   );
-
     case "/order-history":
       return MaterialPageRoute(builder: (context) => OrderHistoryPage());
     case "/order-menu":
@@ -145,12 +137,8 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (context) => FormTokoPage());
     case "/toko-profile":
       return MaterialPageRoute(builder: (context) => StoreProfilePage());
-
     case "/toko-detail":
       return MaterialPageRoute(builder: (context) => StoreDetailPage());
-
-    case "/registrasi-toko":
-      return MaterialPageRoute(builder: (context) => FormTokoPage());
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {
