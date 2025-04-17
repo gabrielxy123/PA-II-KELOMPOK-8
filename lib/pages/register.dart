@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:carilaundry2/core/apiConstant.dart';
 import 'package:carilaundry2/widgets/custom_field.dart';
 import 'package:flutter/material.dart';
-import 'package:carilaundry2/widgets/app_button.dart';
+import 'package:carilaundry2/widgets/app_button.dart';  
 import 'package:carilaundry2/widgets/custom_snackbar.dart';
 import 'package:http/http.dart' as http;
 
@@ -19,23 +19,23 @@ class _RegisterState extends State<Register> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
 
-  // ---------- LOADING DIALOG ----------
-  void _showLoadingDialog() {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-            ),
-          ],
+    // ---------- LOADING DIALOG ----------
+    void _showLoadingDialog() {
+      showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   // ---------- ERROR DIALOG ----------
   void _showErrorDialog(String message) {
