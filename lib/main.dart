@@ -15,6 +15,7 @@ import 'package:carilaundry2/pages/halaman_toko.dart';
 import 'package:carilaundry2/pages/register_toko.dart';
 import 'package:carilaundry2/pages/notifikasi.dart';
 import 'package:carilaundry2/pages/store_profile.dart';
+import 'package:carilaundry2/pages/upload_pembayaran.dart';
 import 'package:carilaundry2/pages/admin/request_list.dart';
 import 'package:carilaundry2/service/notification_service.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +28,7 @@ final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  
+
   // Inisialisasi auth sebelum runApp
   final authProvider = AuthProvider();
   await authProvider.checkLoginStatus();
@@ -65,6 +66,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 Route<dynamic> _onGenerateRoute(RouteSettings settings) {
   switch (settings.name) {
     case "/login":
@@ -128,12 +130,15 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (context) => StoreProfilePage());
     case "/toko-detail":
       return MaterialPageRoute(builder: (context) => StoreDetailPage());
+    case "/upload-pembayaran":
+      return MaterialPageRoute(builder: (context) => UploadPembayaran());
     case "/tes-approve":
       return MaterialPageRoute(
         builder: (BuildContext context) {
           return RequestListPage();
         },
       );
+
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {
