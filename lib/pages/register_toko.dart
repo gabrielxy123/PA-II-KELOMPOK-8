@@ -47,111 +47,113 @@ class _TokoState extends State<FormTokoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Formulir Pendaftaran Toko",
-              style: TextStyle(
-                color: Colors.green,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        // Tambahkan ini
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Formulir Pendaftaran Toko",
+                style: TextStyle(
+                  color: Colors.green,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "Selamat Datang di halaman formulir pendaftaran toko CariLaundry. Disini adalah titik awal untuk mendaftarkan toko anda.",
-              style: TextStyle(
-                fontSize: 14,
+              const SizedBox(height: 10),
+              const Text(
+                "Selamat Datang di halaman formulir pendaftaran toko CariLaundry. Disini adalah titik awal untuk mendaftarkan toko anda.",
+                style: TextStyle(
+                  fontSize: 13.5,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "* Menunjukkan kolom yang wajib diisi",
-              style: TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Nama Toko *",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 10),
+              const Text(
+                "* Menunjukkan kolom yang wajib diisi",
+                style: TextStyle(color: Colors.red),
               ),
-            ),
-            const SizedBox(height: 10),
-            CustomField(
-              label: "*Nama Toko",
-              controller: nameController,
-              isPassword: false,
-              textInputType: TextInputType.text,
-              radius: 10,
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Nomor Telepon *",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 10),
+              const Text(
+                "Nama Toko *",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            CustomField(
-              label: "*Nomor Telepon",
-              controller: noTelpController,
-              isPassword: false,
-              textInputType: TextInputType.phone,
-              radius: 12,
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Email (Contoh : abc@gmail.com) *",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 10),
+              CustomField(
+                label: "*Nama Toko",
+                controller: nameController,
+                isPassword: false,
+                textInputType: TextInputType.text,
+                radius: 10,
               ),
-            ),
-            const SizedBox(height: 10),
-            CustomField(
-              label: "*Email",
-              controller: emailController,
-              isPassword: false,
-              textInputType: TextInputType.emailAddress,
-              radius: 12,
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Deskripsi Toko *",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 20),
+              const Text(
+                "Nomor Telepon *",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            CustomField(
-              label: "*Deskripsi Toko",
-              controller: deskripsiController,
-              isPassword: false,
-              textInputType: TextInputType.text,
-              radius: 12,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _goToNextPage,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.green.withOpacity(0.2), // 20% opacity
-                foregroundColor: Colors.green, // text color
-                elevation:
-                    0, // optional: remove shadow for a cleaner transparent look
+              const SizedBox(height: 10),
+              CustomField(
+                label: "*Nomor Telepon",
+                controller: noTelpController,
+                isPassword: false,
+                textInputType: TextInputType.phone,
+                radius: 12,
               ),
-              child: const Text(
-                "Selanjutnya",
-                style: TextStyle(fontWeight: FontWeight.bold),
+              const SizedBox(height: 20),
+              const Text(
+                "Email (Contoh : abc@gmail.com) *",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            )
-          ],
+              const SizedBox(height: 10),
+              CustomField(
+                label: "*Email",
+                controller: emailController,
+                isPassword: false,
+                textInputType: TextInputType.emailAddress,
+                radius: 12,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Deskripsi Toko *",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 10),
+              CustomField(
+                label: "*Deskripsi Toko",
+                controller: deskripsiController,
+                isPassword: false,
+                textInputType: TextInputType.text,
+                radius: 12,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _goToNextPage,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: Colors.green.withOpacity(0.2),
+                  foregroundColor: Colors.green,
+                  elevation: 0,
+                ),
+                child: const Text(
+                  "Selanjutnya",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
