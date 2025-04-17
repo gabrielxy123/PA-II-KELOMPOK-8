@@ -34,25 +34,9 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       buttonBackgroundColor: Constants.primaryColor.withOpacity(0.1),
       backgroundColor: Color(0xFFF5F7FA),
       animationCurve: Curves.easeInOut,
-      animationDuration: const Duration(milliseconds: 300),
+      animationDuration: const Duration(milliseconds: 100),
       onTap: (index) {
         widget.onItemTapped(index);
-
-        switch (index) {
-          case 0:
-            Navigator.pushReplacementNamed(context, "/dashboard");
-            break;
-          case 1:
-            Navigator.pushReplacementNamed(context, "/order-history");
-            break;
-          case 2:
-            Navigator.pushReplacementNamed(context, '/halama-toko');
-            Navigator.pushReplacementNamed(context, '/store');
-            break;
-          case 3:
-            Navigator.pushReplacementNamed(context, "/user-profil");
-            break;
-        }
       },
     );
   }
@@ -61,7 +45,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     return Icon(
       widget.selectedIndex == _getIndex(icon) ? activeIcon : icon,
       color: widget.selectedIndex == _getIndex(icon)
-          ? Constants.primaryColor
+          ? Constants.primaryColor  
           : Colors.grey.shade600,
       size: 28,
     );

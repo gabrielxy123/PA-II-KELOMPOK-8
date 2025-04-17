@@ -86,7 +86,6 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
         builder: (BuildContext context) {
           return MainContainer(initialIndex: 0);
         },
-        settings: settings,
       );
     case "/single-order":
       return MaterialPageRoute(
@@ -119,7 +118,9 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
         },
       );
     case "/order-history":
-      return MaterialPageRoute(builder: (context) => OrderHistoryPage());
+      return MaterialPageRoute(
+        builder: (context) => MainContainer(initialIndex: 1),
+      );
     case "/order-menu":
       return MaterialPageRoute(builder: (context) => OrderDetailScreen());
     case "/halaman-toko":
