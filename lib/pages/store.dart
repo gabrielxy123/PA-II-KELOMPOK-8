@@ -1,105 +1,135 @@
-import 'package:flutter/material.dart';
-import 'package:carilaundry2/widgets/search_bar.dart';
-import 'package:carilaundry2/widgets/toko_card.dart';
+  import 'dart:convert';
+  import 'package:carilaundry2/core/apiConstant.dart';
+  import 'package:carilaundry2/models/toko.dart';
+  import 'package:flutter/material.dart';
+  import 'package:carilaundry2/widgets/toko_card.dart';
+  import 'package:http/http.dart' as http;
 
-class StorePage extends StatefulWidget {
-  @override
-  _StorePageState createState() => _StorePageState();
-}
+  class StorePage extends StatefulWidget {
+    const StorePage({Key? key}) : super(key: key);
 
-class _StorePageState extends State<StorePage> {
-  final TextEditingController _searchController = TextEditingController();
-  // List<LaundryService> _filteredServices = [];
+    @override
+    State<StorePage> createState() => _StorePageState();
+  }
 
-  // List<LaundryService> _allServices = [
-  //   LaundryService(
-  //     title: 'Agian Laundry',
-  //     logoAsset: 'assets/images/agian.png',
-  //     description: 'Cuci sepatu dengan teknik khusus agar bersih dan wangi.',
-  //     price: 'Rp.15.000',
-  //   ),
-  //   LaundryService(
-  //     title: 'Laundry Fanya',
-  //     logoAsset: 'assets/images/fanya.png',
-  //     description: 'Cuci dan setrika cover dengan bahan berkualitas.',
-  //     price: 'Rp.25.000',
-  //   ),
-  // ];
+  class _StorePageState extends State<StorePage> {
+    final TextEditingController _searchController = TextEditingController();
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _filteredServices = _allServices;
-  //   _searchController.addListener(_filterServices);
-  // }
+    List<Toko> tokoList = [];
+    List<Toko> filteredTokoList = [];
+    bool isLoading = false;
+    String errorMessage = '';
 
-  // @override
-  // void dispose() {
-  //   _searchController.removeListener(_filterServices);
-  //   _searchController.dispose();
-  //   super.dispose();
-  // }
+    @override
+    void initState() {
+      super.initState();
+      fetchDataToko();
+      _searchController.addListener(_onSearchChanged);
+    }
 
-  // void _filterServices() {
-  //   setState(() {
-  //     _filteredServices = _allServices
-  //         .where((service) => LaundryServiceCardWidget.tit
-  //             .toLowerCase()
-  //             .contains(_searchController.text.toLowerCase()))
-  //         .toList();
-  //   });
-  // }
+    void _onSearchChanged() {
+      final query = _searchController.text.toLowerCase();
+      setState(() {
+        filteredTokoList = tokoList.where((toko) {
+          return toko.name.toLowerCase().contains(query);
+        }).toList();
+      });
+    }
 
-  @override
-  Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      automaticallyImplyLeading: false,
-      title: Text('Toko Laundry'),
-    ),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Cari layanan...',
-              prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
+    Future<void> fetchDataToko() async {
+      setState(() {
+        isLoading = true;
+        errorMessage = '';
+      });
+
+      try {
+        final response = await http.get(
+          Uri.parse('${Apiconstant.BASE_URL}/index-toko-user'),
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+
+          if (data['data'] != null) {
+            List<dynamic> tokoJsonList = data['data'];
+            final parsedList =
+                tokoJsonList.map((json) => Toko.fromJson(json)).toList();
+
+            setState(() {
+              tokoList = parsedList;
+              filteredTokoList = parsedList;
+            });
+          } else {
+            throw Exception('Data toko tidak ditemukan.');
+          }
+        } else {
+          throw Exception('Gagal memuat data toko: ${response.body}');
+        }
+      } catch (e) {
+        setState(() {
+          errorMessage = e.toString();
+        });
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text('Toko Laundry'),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Cari layanan...',
+                  prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                ),
               ),
-              filled: true,
-              fillColor: Colors.grey[200],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 2, // 2 cards per row
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.6, // Adjust card aspect ratio
-              children: [
-                TokoCardWidget(
-                  title: 'Laundry Agian',
-                  logoAsset: 'assets/images/agian.png',
-                  description: 'Jl. PI DEL Laguboti',
-                  price: 'Cek Detail',
+              const SizedBox(height: 16),
+              if (isLoading)
+                const Expanded(child: Center(child: CircularProgressIndicator()))
+              else if (errorMessage.isNotEmpty)
+                Expanded(child: Center(child: Text(errorMessage)))
+              else if (filteredTokoList.isEmpty)
+                const Expanded(
+                    child: Center(child: Text("Toko tidak ditemukan.")))
+              else
+                Expanded(
+                  child: GridView.builder(
+                    itemCount: filteredTokoList.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 3 / 4,
+                    ),
+                    itemBuilder: (context, index) {
+                      return TokoCardWidget(toko: filteredTokoList[index]);
+                    },
+                  ),
                 ),
-                TokoCardWidget(
-                  title: 'Laundry Fanya',
-                  logoAsset: 'assets/images/fanya.png',
-                  description: 'Jl. PI Del Laguboti',
-                  price: 'Cek Detail',
-                ),
-              ],
-            ),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
-}
-}
+        ),
+      );
+    }
+  }

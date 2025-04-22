@@ -1,43 +1,46 @@
 class Laundry {
-  final int id;
-  final String name;
-  final String address;
-  final String profileImage;
-  final bool isOpen;
-  final double rating;
-  final int minPrice;
+  final String nama;
+  final String noTelp;
+  final String email;
+  final String deskripsi;
+  final String jalan;
+  final String kecamatan;
+  final String kabupaten;
+  final String provinsi;
+  final DateTime waktuBuka;
+  final DateTime waktuTutup;
+  final String buktiBayar;
+  final String Status;
 
   Laundry({
-    required this.id,
-    required this.name,
-    required this.address,
-    required this.profileImage,
-    required this.isOpen,
-    required this.rating,
-    required this.minPrice,
+    required this.nama,
+    required this.noTelp,
+    required this.email,
+    required this.deskripsi,
+    required this.jalan,
+    required this.kecamatan,
+    required this.kabupaten,
+    required this.provinsi,
+    required this.waktuBuka,
+    required this.waktuTutup,
+    required this.buktiBayar,
+    required this.Status,
   });
 
-  factory Laundry.fromJson(Map<String, dynamic> json) {
+  factory Laundry.fromJson(Map<String, dynamic> json){
     return Laundry(
-      id: json['id'],
-      name: json['name'],
-      address: json['address'],
-      profileImage: json['profile_image'] ?? '',
-      isOpen: json['is_open'] ?? false,
-      rating: (json['rating'] ?? 0.0).toDouble(),
-      minPrice: json['min_price'] ?? 0,
+      nama: json['nama'] ?? '',
+      noTelp: json['noTelp'] ?? '',
+      email: json['email'] ?? '',
+      deskripsi: json['deskripsi'] ?? '',
+      jalan: json['jalan'] ?? '',
+      kecamatan: json['kecamatan'] ?? '',
+      kabupaten: json['kabupaten'] ?? '',
+      provinsi: json['provinsi'] ?? '',
+      waktuBuka: json['waktuBuka'] ?? '',
+      waktuTutup: json['waktuTutup'] ?? '',
+      buktiBayar: json['buktiBayar'] ?? '',
+      Status: json['status'] ?? '',
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'address': address,
-      'profile_image': profileImage,
-      'is_open': isOpen,
-      'rating': rating,
-      'min_price': minPrice,
-    };
   }
 }
