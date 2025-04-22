@@ -86,6 +86,68 @@ class _RequestListPageState extends State<RequestListPage> {
     }
   }
 
+  // Approve toko
+  Future<void> approveToko(String tokoId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await http.put(
+        Uri.parse('${Apiconstant.BASE_URL}/$tokoId/approve'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(responseData['message'])),
+        );
+        fetchDataToko(); // Refresh data
+      } else {
+        throw Exception(responseData['message'] ?? 'Gagal menyetujui toko');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+// Reject toko
+  Future<void> rejectToko(String tokoId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await http.put(
+        Uri.parse('${Apiconstant.BASE_URL}/$tokoId/reject'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(responseData['message'])),
+        );
+        fetchDataToko(); // Refresh data
+      } else {
+        throw Exception(responseData['message'] ?? 'Gagal menolak toko');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
   void updateFilter(String filter) {
     setState(() {
       activeFilter = filter;
@@ -108,10 +170,6 @@ class _RequestListPageState extends State<RequestListPage> {
                 SizedBox(height: 8),
                 Text('Kecamatan: ${toko['kecamatan'] ?? 'Tidak ada'}'),
                 SizedBox(height: 8),
-                Text('Kabupaten: ${toko['kabupaten'] ?? 'Tidak ada'}'),
-                SizedBox(height: 8),
-                Text('Provinsi: ${toko['provinsi'] ?? 'Tidak ada'}'),
-                SizedBox(height: 8),
                 Text('Waktu Buka: ${toko['waktuBuka'] ?? 'Tidak ada'}'),
                 SizedBox(height: 8),
                 Text('Waktu Tutup: ${toko['waktuTutup'] ?? 'Tidak ada'}'),
@@ -121,6 +179,25 @@ class _RequestListPageState extends State<RequestListPage> {
                 Text('Tanggal Request: ${formatDate(toko['created_at'])}'),
                 SizedBox(height: 8),
                 Text('Status: ${toko['status'] ?? 'Menunggu'}'),
+                SizedBox(height: 8),
+                if (toko['buktiBayar'] != null && toko['buktiBayar'].isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Bukti Pembayaran:'),
+                      SizedBox(height: 8),
+                      Image.network(
+                        '${Apiconstant.BASE_URL}${toko['buktiBayar']}',
+                        width: 200,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, StackTrace) {
+                          return Text('Gagal Memuat Gambar');
+                        },
+                      )
+                    ],
+                  ),
+                Text('Belum ada bukti pembayaran')
               ],
             ),
           ),
@@ -151,7 +228,7 @@ class _RequestListPageState extends State<RequestListPage> {
               backgroundImage: AssetImage('assets/images/logo.png'),
             ),
             SizedBox(width: 10),
-            Text('Budi Santoso'),
+            Text('ADMIN DASHBOARD'),
           ],
         ),
         actions: [
@@ -204,40 +281,46 @@ class _RequestListPageState extends State<RequestListPage> {
             ),
             SizedBox(height: 16),
             Expanded(
-              child: isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : errorMessage.isNotEmpty
-                      ? Center(
-                          child: Text(
-                            errorMessage,
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        )
-                      : filteredList.isEmpty
-                          ? Center(
-                              child: Text(
-                                'Tidak ada data untuk filter "$activeFilter"',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: filteredList.length,
-                              itemBuilder: (context, index) {
-                                var toko = filteredList[index];
-                                return RequestCard(
-                                  title: toko['nama'] ?? 'Tidak ada nama',
-                                  requestDate: formatDate(toko['created_at']),
-                                  name: toko['nama'] ?? 'Tidak ada nama',
-                                  address: toko['jalan'] ?? 'Tidak ada alamat',
-                                  phone: toko['noTelp'] ??
-                                      'Tidak ada nomor telepon',
-                                  status: toko['status'] ?? 'Menunggu',
-                                  onDetailPressed: () =>
-                                      showDetailDialog(context, toko),
-                                );
-                              },
+                child: isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : errorMessage.isNotEmpty
+                        ? Center(
+                            child: Text(
+                              errorMessage,
+                              style: TextStyle(color: Colors.red),
                             ),
-            ),
+                          )
+                        : filteredList.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'Tidak ada data untuk filter "$activeFilter"',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: filteredList.length,
+                                itemBuilder: (context, index) {
+                                  var toko = filteredList[index];
+                                  return RequestCard(
+                                    title: toko['nama'] ?? 'Tidak ada nama',
+                                    requestDate: formatDate(toko['created_at']),
+                                    name: toko['nama'] ?? 'Tidak ada nama',
+                                    address:
+                                        toko['jalan'] ?? 'Tidak ada alamat',
+                                    phone: toko['noTelp'] ??
+                                        'Tidak ada nomor telepon',
+                                    status: toko['status'] ?? 'Menunggu',
+                                    tokoId:
+                                        toko['id'].toString(), // Tambahkan ini
+                                    onDetailPressed: () =>
+                                        showDetailDialog(context, toko),
+                                    onApprove: (id) =>
+                                        approveToko(id), // Tambahkan ini
+                                    onReject: (id) =>
+                                        rejectToko(id), // Tambahkan ini
+                                  );
+                                },
+                              )),
           ],
         ),
       ),
@@ -338,7 +421,10 @@ class RequestCard extends StatelessWidget {
   final String address;
   final String phone;
   final String status;
+  final String tokoId; // Tambahkan ini
   final VoidCallback onDetailPressed;
+  final Function(String) onApprove; // Tambahkan ini
+  final Function(String) onReject; // Tambahkan ini
 
   const RequestCard({
     required this.title,
@@ -347,7 +433,10 @@ class RequestCard extends StatelessWidget {
     required this.address,
     required this.phone,
     required this.status,
+    required this.tokoId, // Tambahkan ini
     required this.onDetailPressed,
+    required this.onApprove, // Tambahkan ini
+    required this.onReject, // Tambahkan ini
   });
 
   @override
@@ -406,14 +495,69 @@ class RequestCard extends StatelessWidget {
                   child: Text('Detail'),
                 ),
                 ElevatedButton(
-                  onPressed: () {},
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: status == 'Menunggu'
+                      ? () async {
+                          final confirmed = await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('Konfirmasi'),
+                              content:
+                                  Text('Anda yakin ingin menyetujui toko ini?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: Text('Batal'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: Text('Setujui'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirmed == true) {
+                            onApprove(tokoId);
+                          }
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
                   child: Text('Setujui'),
                 ),
                 ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: status == 'Menunggu'
+                      ? () async {
+                          final alasan = await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('Konfirmasi'),
+                              content: Text('Anda yakin ingin menolak toko ini?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: Text('Batal'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: Text('Tolak')
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (alasan == true) {
+                            onReject(tokoId);
+                          }
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
                   child: Text('Tolak'),
                 ),
               ],
