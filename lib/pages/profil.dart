@@ -343,8 +343,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Constants.primaryColor,
-        title: Text("Akun Saya", style: TextStyle(color: Colors.white)
-        ),
+        title: Text("Akun Saya", style: TextStyle(color: Colors.white)),
         automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<UserProfile?>(
@@ -793,6 +792,7 @@ class _ProfilePageState extends State<ProfilePage> {
             title: "Toko Anda",
             onTap: () {
               // Navigate to store page
+              Navigator.pushNamed(context, "/tes-approve");
             },
           ),
           Divider(height: 1, color: Colors.grey.shade200),
@@ -886,7 +886,7 @@ class _ProfilePageState extends State<ProfilePage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, "/registrasi-toko");
+                  Navigator.pushNamed(context, "/register-toko");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Constants.primaryColor,

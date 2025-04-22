@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carilaundry2/widgets/app_button.dart';
 import 'package:carilaundry2/widgets/custom_snackbar.dart';
 import 'package:http/http.dart' as http;
+import 'package:carilaundry2/pages/admin/request_list.dart';
+
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -71,31 +73,46 @@ class _LoginState extends State<Login> {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
+
         String token = responseData['token'] ?? '';
-        if (token.isEmpty) throw Exception('Token tidak ditemukan di respons API');
+        if (token.isEmpty)
+          throw Exception('Token tidak ditemukan di respons API');
 
         String userName = responseData['user']['name'] ?? 'Guest';
         String userProfileImage = responseData['user']['profile_image'] ?? '';
+        int userId = responseData['user']['id']; // Ambil user_id dari respons API
+        String role = responseData['role'] ?? '';
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userName', userName);
         await prefs.setString('userProfileImage', userProfileImage);
         await prefs.setString('auth_token', token);
+        await prefs.setInt('user_id', userId); // Simpan user_id
 
         await _fetchUserProfile(token);
 
         CustomSnackbar.showSuccess(context, "Login Berhasil!");
 
-        Navigator.pushReplacementNamed(context, "/dashboard", arguments: userName);
+        if (role == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => RequestListPage()),
+          );
+        } else {
+          Navigator.pushReplacementNamed(context, "/dashboard",
+              arguments: userName);
+        }
       } else {
         final responseData = jsonDecode(response.body);
-        String errorMessage = responseData['message'] ?? "Login gagal. Periksa data Anda";
+        String errorMessage =
+            responseData['message'] ?? "Login gagal. Periksa data Anda";
         _showErrorDialog(errorMessage);
       }
     } catch (e) {
       Navigator.pop(context); // close loading on error
-      _showErrorDialog("Terjadi kesalahan. Periksa koneksi Anda dan coba lagi.");
+      _showErrorDialog(
+          "Terjadi kesalahan. Periksa koneksi Anda dan coba lagi.");
     }
   }
 
@@ -103,7 +120,7 @@ class _LoginState extends State<Login> {
     try {
       final response = await http.get(
         Uri.parse('${Apiconstant.BASE_URL}/user-profil'),
-        headers: {  
+        headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
           'Accept': 'application/json',

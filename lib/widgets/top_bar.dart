@@ -35,8 +35,8 @@ class _TopBarWidgetState extends State<TopBarWidget> {
   @override
   void initState() {
     super.initState();
-    print('TopBarWidget - isLoggedIn: ${widget.isLoggedIn}');
-    print('TopBarWidget - userProfileImage: ${widget.userProfileImage}');
+    // print('TopBarWidget - isLoggedIn: ${widget.isLoggedIn}');
+    // print('TopBarWidget - userProfileImage: ${widget.userProfileImage}');
     userProfileFuture = _checkLoginAndFetchProfile();
   }
 
@@ -105,7 +105,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
             children: [
               InkWell(
                 onTap: () {
-                  if (!authProvider.isLoggedIn) {
+                  if (!authProvider.isCheckingLogin) {
                     Navigator.pushNamed(context, "/login");
                   } else {
                     Navigator.pushNamed(context, "/user-profil");
@@ -196,7 +196,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
               IconButton(
                 icon: const Icon(Icons.notifications_outlined),
                 onPressed: () {
-                  if (authProvider.isLoggedIn) {
+                  if (authProvider.isCheckingLogin) {
                     Navigator.pushNamed(context, "/notifications");
                   } else {
                     Navigator.pushNamed(context, "/not-logged");

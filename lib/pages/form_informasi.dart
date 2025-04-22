@@ -70,7 +70,9 @@ class _OperasionalState extends State<FormInformasiPage> {
   // 1. Tambahkan fungsi getUserId()
   Future<int?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('user_id');
+    final userId = prefs.getInt('user_id');
+    print('User ID yang diambil dari SharedPreferences: $userId');
+    return userId;
   }
 
   // 2. Fungsi getToken yang sudah ada
@@ -143,7 +145,7 @@ class _OperasionalState extends State<FormInformasiPage> {
       Navigator.pop(context);
 
       if (response.statusCode == 201) {
-        CustomSnackbar.showSuccess(context, "Pendaftaran Toko Berhasil");
+        CustomSnackbar.showSuccess(context, "Pendaftaran Toko Berhasil. Silahkan tunggu approve admin");
         Navigator.pushReplacementNamed(context, "/dashboard");
       } else {
         final responseData = jsonDecode(response.body);
