@@ -1,10 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:carilaundry2/widgets/bottom_navigation.dart';
-import 'package:carilaundry2/widgets/search_bar.dart';
-import 'package:carilaundry2/widgets/top_bar.dart';
-import 'package:carilaundry2/widgets/laundry_card.dart';
-import 'package:carilaundry2/widgets/banner_widget.dart';
-import 'package:carilaundry2/pages/order_history.dart'; 
 
 class OrderDetailPage extends StatelessWidget {
   final String customerName;
@@ -29,83 +23,189 @@ class OrderDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Pesanan')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDetailRow('Nama Pelanggan', customerName, bold: true),
-            _buildDetailRow('No. Pesanan', orderNumber, bold: true),
-            _buildDetailRow('Tanggal Pemesanan', orderDate, bold: true),
-            _buildDetailRow('Status', status, bold: true, color: status == 'Selesai' ? Colors.green : Colors.orange),
-            const Divider(),
-            const SizedBox(height: 10),
-            _buildTableHeader(),
-            ...products.map((product) => _buildTableRow(
-                  product['name'],
-                  product['quantity'].toString(),
-                  'Rp${product['unitPrice']}',
-                  'Rp${product['totalPrice']}',
-                )),
-            const Divider(),
-            _buildTotalRow('Total Harga Laundry', products.fold<int>(0, (sum, item) => sum + (item['totalPrice'] as int))),
-            _buildTotalRow('Extra Pelembut', extraCost),
-            _buildTotalRow('Total Harga Keseluruhan', totalCost, bold: true),
-          ],
+      appBar: AppBar(
+        title: const Text('Detail Pesanan', style: TextStyle(fontSize: 14)),
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          color: Colors.green[100]!.withOpacity(0.1), // Bright green with 10% opacity
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(10),
+          child: Card(
+            elevation: 3,
+            shadowColor: Colors.black.withOpacity(0.1),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Section
+                  _buildDetailRow('Nama Toko', customerName, bold: true),
+                  const SizedBox(height: 8),
+                  _buildDetailRow('No. Pesanan', orderNumber),
+                  const SizedBox(height: 8),
+                  _buildDetailRow('Tanggal Pemesanan', orderDate),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Status', style: TextStyle(fontSize: 12)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: status == 'Selesai'
+                              ? Colors.green[100]
+                              : Colors.orange[100],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          status,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: status == 'Selesai'
+                                ? Colors.green[800]
+                                : Colors.orange[800],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Table Header
+                  Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        top: BorderSide(width: 2.0, color: Colors.black),
+                        bottom: BorderSide(width: 2.0, color: Colors.black),
+                      ),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                              flex: 3,
+                              child: Text('INFO PRODUK',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold))),
+                          Expanded(
+                              flex: 1,
+                              child: Text('JUMLAH',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold),
+                                  textAlign: TextAlign.center)),
+                          Expanded(
+                              flex: 2,
+                              child: Text('HARGA',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold),
+                                  textAlign: TextAlign.right)),
+                          Expanded(
+                              flex: 2,
+                              child: Text('TOTAL',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold),
+                                  textAlign: TextAlign.right)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Product Rows
+                  ...products
+                      .map((product) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    flex: 3,
+                                    child: Text(product['name'],
+                                        style: const TextStyle(fontSize: 12))),
+                                Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                        product['quantity'].toString(),
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(fontSize: 12))),
+                                Expanded(
+                                    flex: 2,
+                                    child: Text('Rp${product['unitPrice']}',
+                                        textAlign: TextAlign.right,
+                                        style: const TextStyle(fontSize: 12))),
+                                Expanded(
+                                    flex: 2,
+                                    child: Text('Rp${product['totalPrice']}',
+                                        textAlign: TextAlign.right,
+                                        style: const TextStyle(fontSize: 12))),
+                              ],
+                            ),
+                          ))
+                      .toList(),
+
+                  const SizedBox(height: 16),
+
+                  // Total Section
+                  _buildTotalRow(
+                      'Total Harga Laundry',
+                      products.fold<int>(
+                          0, (sum, item) => sum + (item['totalPrice'] as int))),
+                  if (extraCost > 0)
+                    _buildTotalRow('Extra Pelembut', extraCost),
+                  const Divider(height: 16),
+                  _buildTotalRow('Total Harga Keseluruhan', totalCost,
+                      bold: true),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool bold = false, Color? color}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-          Text(value, style: TextStyle(fontSize: 16, fontWeight: bold ? FontWeight.bold : FontWeight.normal, color: color)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTableHeader() {
+  Widget _buildDetailRow(String label, String value, {bool bold = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
-        Expanded(flex: 3, child: Text('INFO PRODUK', style: TextStyle(fontWeight: FontWeight.bold))),
-        Expanded(flex: 1, child: Text('JUMLAH', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
-        Expanded(flex: 2, child: Text('HARGA SATUAN', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
-        Expanded(flex: 2, child: Text('TOTAL', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold))),
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12)),
+        Text(value,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
       ],
-    );
-  }
-
-  Widget _buildTableRow(String name, String quantity, String unitPrice, String totalPrice) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(flex: 3, child: Text(name)),
-          Expanded(flex: 1, child: Text(quantity, textAlign: TextAlign.center)),
-          Expanded(flex: 2, child: Text(unitPrice, textAlign: TextAlign.center)),
-          Expanded(flex: 2, child: Text(totalPrice, textAlign: TextAlign.center)),
-        ],
-      ),
     );
   }
 
   Widget _buildTotalRow(String label, int amount, {bool bold = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 16, fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
-          Text('Rp$amount', style: TextStyle(fontSize: 16, fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+          Text('Rp$amount',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
         ],
       ),
     );
