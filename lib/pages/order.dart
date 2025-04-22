@@ -34,22 +34,30 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Riwayat Transaksi'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.black,
           indicator: BoxDecoration(
             color: Colors.green,
-            borderRadius: BorderRadius.circular(5),
           ),
+          indicatorSize: TabBarIndicatorSize
+              .tab, // This makes the indicator span the entire tab
           tabs: const [
-            Tab(text: 'Transaksi Terkini'),
-            Tab(text: 'Selesai'),
+            Tab(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                child: Text('Transaksi Terkini'),
+              ),
+            ),
+            Tab(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                child: Text('Selesai'),
+              ),
+            ),
           ],
         ),
       ),
@@ -68,6 +76,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
               ),
             ],
           ),
+          
           // Tab Selesai
           ListView(
             children: [
@@ -92,88 +101,112 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
     required String orderNumber,
     required bool isCompleted,
   }) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: ListTile(
-        leading: Image.asset('assets/images/agian.png', width: 50, height: 50),
-        title: Text(
-          laundryName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+      child: Card(
+        elevation: 2,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(phoneNumber),
-            Text(
-              status,
-              style: TextStyle(
-                color: isCompleted ? Colors.green : Colors.orange,
-                fontWeight: FontWeight.bold,
-              ),
+        child: SizedBox(
+          height: 100, // Fixed height for consistency
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Image.asset('assets/images/agian.png', width: 50, height: 50),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        laundryName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(phoneNumber),
+                      Text(
+                        status,
+                        style: TextStyle(
+                          color: isCompleted ? Colors.green : Colors.orange,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                isCompleted
+                    ? SizedBox(
+                        width: 120,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OrderReviewPage(
+                                  laundryName: laundryName,
+                                  orderId: orderNumber,
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          child: const Text(
+                            'Beri Penilaian',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      )
+                    : InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OrderDetailPage(
+                                customerName: 'Budi Soetomo',
+                                orderNumber: orderNumber,
+                                orderDate: '25 Februari 2025',
+                                status: status,
+                                products: [
+                                  {
+                                    'name': 'Kaos',
+                                    'quantity': 3,
+                                    'unitPrice': 7000,
+                                    'totalPrice': 21000
+                                  },
+                                  {
+                                    'name': 'Kemeja',
+                                    'quantity': 3,
+                                    'unitPrice': 9000,
+                                    'totalPrice': 27000
+                                  },
+                                  {
+                                    'name': 'Celana',
+                                    'quantity': 3,
+                                    'unitPrice': 10000,
+                                    'totalPrice': 30000
+                                  },
+                                ],
+                                extraCost: 5000,
+                                totalCost: 220000,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Lihat Selengkapnya',
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ),
+              ],
             ),
-          ],
+          ),
         ),
-        trailing: isCompleted
-            ? ElevatedButton(
-                onPressed: () {
-                  // Navigasi ke halaman penilaian (rating)
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OrderReviewPage(
-                        laundryName: laundryName,
-                        orderId:
-                            orderNumber, // Gunakan orderNumber sebagai ID pesanan
-                      ),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
-                child: const Text('Beri Penilaian'),
-              )
-            : InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OrderDetailPage(
-                        customerName: 'Budi Soetomo',
-                        orderNumber: orderNumber,
-                        orderDate: '25 Februari 2025',
-                        status: status,
-                        products: [
-                          {
-                            'name': 'Kaos',
-                            'quantity': 3,
-                            'unitPrice': 7000,
-                            'totalPrice': 21000
-                          },
-                          {
-                            'name': 'Kemeja',
-                            'quantity': 3,
-                            'unitPrice': 9000,
-                            'totalPrice': 27000
-                          },
-                          {
-                            'name': 'Celana',
-                            'quantity': 3,
-                            'unitPrice': 10000,
-                            'totalPrice': 30000
-                          },
-                        ],
-                        extraCost: 5000,
-                        totalCost: 220000,
-                      ),
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Lihat Selengkapnya',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
       ),
     );
   }

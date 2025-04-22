@@ -145,8 +145,8 @@ class _OperasionalState extends State<FormInformasiPage> {
       Navigator.pop(context);
 
       if (response.statusCode == 201) {
-        CustomSnackbar.showSuccess(context, "Pendaftaran Toko Berhasil. Silahkan tunggu approve admin");
-        Navigator.pushReplacementNamed(context, "/dashboard");
+        CustomSnackbar.showSuccess(context, "Pendaftaran Toko Berhasil. Silahkan bayar uang sewa toko anda.");
+        Navigator.pushReplacementNamed(context, "/upload-pembayaran");
       } else {
         final responseData = jsonDecode(response.body);
         String errorMessage =

@@ -26,7 +26,7 @@ class _RequestListPageState extends State<RequestListPage> {
     if (isoDate == null) return 'Tidak ada tanggal';
     try {
       final date = DateTime.parse(isoDate);
-      return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}';
+      return '${date.day} - ${date.month} - ${date.year}';
     } catch (e) {
       return 'Format tanggal salah';
     }
@@ -143,22 +143,32 @@ class _RequestListPageState extends State<RequestListPage> {
         tokoList.where((toko) => toko['status'] == activeFilter).toList();
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
         automaticallyImplyLeading: false,
         title: Row(
           children: [
             CircleAvatar(
               backgroundImage: AssetImage('assets/images/logo.png'),
+              radius: 16,
             ),
             SizedBox(width: 10),
-            Text('Budi Santoso'),
+            Text(
+              'Budi Santoso',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 16,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
           ],
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Colors.black),
             onPressed: () {
-              // Tambahkan logika logout di sini
               _showLogoutDialog(context);
             },
           ),
@@ -168,44 +178,61 @@ class _RequestListPageState extends State<RequestListPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Cari',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+            // Search bar
+            Container(
+              decoration: BoxDecoration(
+                color: Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Cari',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
             ),
             SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  FilterButton(
+            
+            // Filter tabs
+            Row(
+              children: [
+                Expanded(
+                  child: FilterButton(
                     label: 'Menunggu',
                     isActive: activeFilter == 'Menunggu',
                     onPressed: () => updateFilter('Menunggu'),
+                    activeColor: Color(0xFF00796B), // Dark teal color
                   ),
-                  SizedBox(width: 8),
-                  FilterButton(
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: FilterButton(
                     label: 'Diterima',
                     isActive: activeFilter == 'Diterima',
                     onPressed: () => updateFilter('Diterima'),
+                    activeColor: Color(0xFF00796B),
                   ),
-                  SizedBox(width: 8),
-                  FilterButton(
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: FilterButton(
                     label: 'Ditolak',
                     isActive: activeFilter == 'Ditolak',
                     onPressed: () => updateFilter('Ditolak'),
+                    activeColor: Color(0xFF00796B),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             SizedBox(height: 16),
+            
+            // Request list
             Expanded(
               child: isLoading
-                  ? Center(child: CircularProgressIndicator())
+                  ? Center(child: CircularProgressIndicator(color: Color(0xFF00796B)))
                   : errorMessage.isNotEmpty
                       ? Center(
                           child: Text(
@@ -229,11 +256,9 @@ class _RequestListPageState extends State<RequestListPage> {
                                   requestDate: formatDate(toko['created_at']),
                                   name: toko['nama'] ?? 'Tidak ada nama',
                                   address: toko['jalan'] ?? 'Tidak ada alamat',
-                                  phone: toko['noTelp'] ??
-                                      'Tidak ada nomor telepon',
+                                  phone: toko['noTelp'] ?? 'Tidak ada nomor telepon',
                                   status: toko['status'] ?? 'Menunggu',
-                                  onDetailPressed: () =>
-                                      showDetailDialog(context, toko),
+                                  onDetailPressed: () => showDetailDialog(context, toko),
                                 );
                               },
                             ),
@@ -283,7 +308,7 @@ class _RequestListPageState extends State<RequestListPage> {
                   .pushNamedAndRemoveUntil("/dashboard", (route) => false);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Constants.primaryColor,
+              backgroundColor: Color(0xFF00796B),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -309,11 +334,13 @@ class FilterButton extends StatelessWidget {
   final String label;
   final bool isActive;
   final VoidCallback onPressed;
+  final Color activeColor;
 
   const FilterButton({
     required this.label,
     required this.isActive,
     required this.onPressed,
+    this.activeColor = Colors.green,
   });
 
   @override
@@ -321,12 +348,20 @@ class FilterButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: isActive ? Colors.green : Colors.grey,
+        backgroundColor: isActive ? activeColor : Color(0xFFE0E0E0),
+        foregroundColor: isActive ? Colors.white : Colors.black,
+        elevation: 0,
+        padding: EdgeInsets.symmetric(vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(4.0),
         ),
       ),
-      child: Text(label),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }
@@ -352,23 +387,12 @@ class RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color statusColor;
-    switch (status) {
-      case 'Diterima':
-        statusColor = Colors.green;
-        break;
-      case 'Ditolak':
-        statusColor = Colors.red;
-        break;
-      default:
-        statusColor = Colors.orange;
-    }
-
     return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
       ),
-      elevation: 4.0,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -386,35 +410,111 @@ class RequestCard extends StatelessWidget {
                 ),
                 Text(
                   status,
-                  style: TextStyle(color: statusColor),
+                  style: TextStyle(
+                    color: status == 'Menunggu' 
+                        ? Color(0xFF00796B) 
+                        : status == 'Diterima' 
+                            ? Colors.green 
+                            : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
-            SizedBox(height: 8),
-            Text('Di Request Pada $requestDate'),
-            SizedBox(height: 8),
-            Text(name),
-            Text(address),
-            Text(phone),
-            SizedBox(height: 8),
+            SizedBox(height: 4),
+            Text(
+              'Di Request Pada $requestDate',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              name,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              address,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[700],
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              phone,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[700],
+              ),
+            ),
+            SizedBox(height: 12),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ElevatedButton(
-                  onPressed: onDetailPressed,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
-                  child: Text('Detail'),
+                SizedBox(
+                  height: 32,
+                  child: ElevatedButton(
+                    onPressed: onDetailPressed,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[300],
+                      foregroundColor: Colors.black,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                    ),
+                    child: Text(
+                      'Detail',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () {},
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: Text('Setujui'),
+                SizedBox(width: 8),
+                SizedBox(
+                  height: 32,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF00796B),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                    ),
+                    child: Text(
+                      'Setuju',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: Text('Tolak'),
+                SizedBox(width: 8),
+                SizedBox(
+                  height: 32,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                    ),
+                    child: Text(
+                      'Tolak',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -10,7 +10,6 @@ import 'package:carilaundry2/widgets/custom_snackbar.dart';
 import 'package:http/http.dart' as http;
 import 'package:carilaundry2/pages/admin/request_list.dart';
 
-
 class Login extends StatefulWidget {
   const Login({super.key});
 
@@ -80,7 +79,8 @@ class _LoginState extends State<Login> {
 
         String userName = responseData['user']['name'] ?? 'Guest';
         String userProfileImage = responseData['user']['profile_image'] ?? '';
-        int userId = responseData['user']['id']; // Ambil user_id dari respons API
+        int userId =
+            responseData['user']['id']; // Ambil user_id dari respons API
         String role = responseData['role'] ?? '';
 
         final prefs = await SharedPreferences.getInstance();
@@ -100,8 +100,14 @@ class _LoginState extends State<Login> {
             MaterialPageRoute(builder: (context) => RequestListPage()),
           );
         } else {
-          Navigator.pushReplacementNamed(context, "/dashboard",
-              arguments: userName);
+          // Navigator.pushAndRemoveUntil(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => Dashboard(userName: userName),
+          //   ),
+          //   (route) => false, // This will remove all previous routes
+          // );
+          Navigator.of(context) .pushNamedAndRemoveUntil("/dashboard", (route) => false);
         }
       } else {
         final responseData = jsonDecode(response.body);

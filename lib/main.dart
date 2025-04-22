@@ -9,14 +9,15 @@ import 'package:carilaundry2/pages/login.dart';
 import 'package:carilaundry2/pages/single_order.dart';
 import 'package:carilaundry2/pages/main_container.dart';
 import 'package:carilaundry2/utils/constants.dart';
-import 'package:carilaundry2/pages/order_history.dart';
+// import 'package:carilaundry2/pages/order_history.dart';
 import 'package:carilaundry2/pages/order_menu.dart';
 import 'package:carilaundry2/pages/halaman_toko.dart';
 import 'package:carilaundry2/pages/register_toko.dart';
 import 'package:carilaundry2/pages/notifikasi.dart';
 import 'package:carilaundry2/pages/store_profile.dart';
+import 'package:carilaundry2/pages/upload_pembayaran.dart';
 import 'package:carilaundry2/pages/admin/request_list.dart';
-import 'package:carilaundry2/service/notification_service.dart';
+// import 'package:carilaundry2/service/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'package:carilaundry2/AuthProvider/auth_provider.dart';
 
@@ -27,7 +28,7 @@ final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  
+
   // Inisialisasi auth sebelum runApp
   final authProvider = AuthProvider();
   await authProvider.checkLoginStatus();
@@ -65,6 +66,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 Route<dynamic> _onGenerateRoute(RouteSettings settings) {
   switch (settings.name) {
     case "/login":
@@ -84,7 +86,6 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
         builder: (BuildContext context) {
           return MainContainer(initialIndex: 0);
         },
-        settings: settings,
       );
     case "/single-order":
       return MaterialPageRoute(
@@ -117,7 +118,9 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
         },
       );
     case "/order-history":
-      return MaterialPageRoute(builder: (context) => OrderHistoryPage());
+      return MaterialPageRoute(
+        builder: (context) => MainContainer(initialIndex: 1),
+      );
     case "/order-menu":
       return MaterialPageRoute(builder: (context) => OrderDetailScreen());
     case "/halaman-toko":
@@ -128,11 +131,15 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (context) => StoreProfilePage());
     case "/toko-detail":
       return MaterialPageRoute(builder: (context) => StoreDetailPage());
+    case "/upload-pembayaran":
+      return MaterialPageRoute(builder: (context) => UploadPembayaran());
     case "/tes-approve":
-      return MaterialPageRoute(builder: (BuildContext context) {
+      return MaterialPageRoute(
+        builder: (BuildContext context) {
           return RequestListPage();
-          },
-        );
+        },
+      );
+
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {

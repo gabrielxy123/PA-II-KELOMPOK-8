@@ -6,6 +6,8 @@ import 'package:carilaundry2/pages/order.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carilaundry2/pages/store.dart';
 import 'package:carilaundry2/pages/Halaman_Toko.dart';
+import 'dart:io';
+import 'package:flutter/services.dart';
 
 // Global ScaffoldMessengerKey for snackbars
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -46,18 +48,53 @@ class _MainContainerState extends State<MainContainer> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: BottomNavigationBarWidget(
-        selectedIndex: _selectedIndex,
-        onItemTapped: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+    return WillPopScope(
+      onWillPop: () async {
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Keluar Aplikasi"),
+            content: Text("Apakah kamu yakin ingin keluar dari aplikasi?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text("Tidak"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text("Ya"),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldExit == true) {
+          // Gunakan salah satu dari ini:
+
+          // Kalau kamu pakai Android (lebih aman)
+          SystemNavigator.pop();
+
+          // ATAU (tidak disarankan di iOS)
+          // exit(0);
+
+          return true; // biar WillPopScope tahu kita lanjut
+        }
+
+        return false;
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: _pages,
+        ),
+        bottomNavigationBar: BottomNavigationBarWidget(
+          selectedIndex: _selectedIndex,
+          onItemTapped: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+        ),
       ),
     );
   }
