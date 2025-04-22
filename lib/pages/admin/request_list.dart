@@ -86,6 +86,68 @@ class _RequestListPageState extends State<RequestListPage> {
     }
   }
 
+  // Approve toko
+  Future<void> approveToko(String tokoId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await http.put(
+        Uri.parse('${Apiconstant.BASE_URL}/$tokoId/approve'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(responseData['message'])),
+        );
+        fetchDataToko(); // Refresh data
+      } else {
+        throw Exception(responseData['message'] ?? 'Gagal menyetujui toko');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+  // Reject toko
+  Future<void> rejectToko(String tokoId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await http.put(
+        Uri.parse('${Apiconstant.BASE_URL}/$tokoId/reject'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(responseData['message'])),
+        );
+        fetchDataToko(); // Refresh data
+      } else {
+        throw Exception(responseData['message'] ?? 'Gagal menolak toko');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
   void updateFilter(String filter) {
     setState(() {
       activeFilter = filter;
@@ -108,10 +170,6 @@ class _RequestListPageState extends State<RequestListPage> {
                 SizedBox(height: 8),
                 Text('Kecamatan: ${toko['kecamatan'] ?? 'Tidak ada'}'),
                 SizedBox(height: 8),
-                Text('Kabupaten: ${toko['kabupaten'] ?? 'Tidak ada'}'),
-                SizedBox(height: 8),
-                Text('Provinsi: ${toko['provinsi'] ?? 'Tidak ada'}'),
-                SizedBox(height: 8),
                 Text('Waktu Buka: ${toko['waktuBuka'] ?? 'Tidak ada'}'),
                 SizedBox(height: 8),
                 Text('Waktu Tutup: ${toko['waktuTutup'] ?? 'Tidak ada'}'),
@@ -121,6 +179,26 @@ class _RequestListPageState extends State<RequestListPage> {
                 Text('Tanggal Request: ${formatDate(toko['created_at'])}'),
                 SizedBox(height: 8),
                 Text('Status: ${toko['status'] ?? 'Menunggu'}'),
+                SizedBox(height: 8),
+                if (toko['buktiBayar'] != null && toko['buktiBayar'].isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Bukti Pembayaran:'),
+                      SizedBox(height: 8),
+                      Image.network(
+                        '${Apiconstant.BASE_URL}${toko['buktiBayar']}',
+                        width: 200,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, StackTrace) {
+                          return Text('Gagal Memuat Gambar');
+                        },
+                      )
+                    ],
+                  ),
+                if (toko['buktiBayar'] == null || toko['buktiBayar'].isEmpty)
+                  Text('Belum ada bukti pembayaran')
               ],
             ),
           ),
@@ -150,17 +228,19 @@ class _RequestListPageState extends State<RequestListPage> {
         automaticallyImplyLeading: false,
         title: Row(
           children: [
+            // Profile avatar
             CircleAvatar(
-              backgroundImage: AssetImage('assets/images/logo.png'),
-              radius: 16,
+              backgroundImage: AssetImage('assets/images/profile.png'),
+              radius: 20,
             ),
-            SizedBox(width: 10),
+            SizedBox(width: 12),
+            // User name
             Text(
-              'Budi Santoso',
+              'Admin Laundry',
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 16,
-                fontWeight: FontWeight.normal,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -169,7 +249,7 @@ class _RequestListPageState extends State<RequestListPage> {
           IconButton(
             icon: Icon(Icons.logout, color: Colors.black),
             onPressed: () {
-              _showLogoutDialog(context);
+              _showLogoutDialog(context);    
             },
           ),
         ],
@@ -195,7 +275,7 @@ class _RequestListPageState extends State<RequestListPage> {
               ),
             ),
             SizedBox(height: 16),
-            
+
             // Filter tabs
             Row(
               children: [
@@ -204,72 +284,83 @@ class _RequestListPageState extends State<RequestListPage> {
                     label: 'Menunggu',
                     isActive: activeFilter == 'Menunggu',
                     onPressed: () => updateFilter('Menunggu'),
-                    activeColor: Color(0xFF00796B), // Dark teal color
+                    activeColor:
+                        Color(0xFF00695C), // Dark green color from design
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: 4),
                 Expanded(
                   child: FilterButton(
                     label: 'Diterima',
                     isActive: activeFilter == 'Diterima',
                     onPressed: () => updateFilter('Diterima'),
-                    activeColor: Color(0xFF00796B),
+                    activeColor: Color(0xFF00695C),
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: 4),
                 Expanded(
                   child: FilterButton(
                     label: 'Ditolak',
                     isActive: activeFilter == 'Ditolak',
                     onPressed: () => updateFilter('Ditolak'),
-                    activeColor: Color(0xFF00796B),
+                    activeColor: Color(0xFF00695C),
                   ),
                 ),
               ],
             ),
             SizedBox(height: 16),
-            
+
             // Request list
             Expanded(
-              child: isLoading
-                  ? Center(child: CircularProgressIndicator(color: Color(0xFF00796B)))
-                  : errorMessage.isNotEmpty
-                      ? Center(
-                          child: Text(
-                            errorMessage,
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        )
-                      : filteredList.isEmpty
-                          ? Center(
-                              child: Text(
-                                'Tidak ada data untuk filter "$activeFilter"',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: filteredList.length,
-                              itemBuilder: (context, index) {
-                                var toko = filteredList[index];
-                                return RequestCard(
-                                  title: toko['nama'] ?? 'Tidak ada nama',
-                                  requestDate: formatDate(toko['created_at']),
-                                  name: toko['nama'] ?? 'Tidak ada nama',
-                                  address: toko['jalan'] ?? 'Tidak ada alamat',
-                                  phone: toko['noTelp'] ?? 'Tidak ada nomor telepon',
-                                  status: toko['status'] ?? 'Menunggu',
-                                  onDetailPressed: () => showDetailDialog(context, toko),
-                                );
-                              },
+                child: isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : errorMessage.isNotEmpty
+                        ? Center(
+                            child: Text(
+                              errorMessage,
+                              style: TextStyle(color: Colors.red),
                             ),
-            ),
+                          )
+                        : filteredList.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'Tidak Ada Request Toko',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: filteredList.length,
+                                itemBuilder: (context, index) {
+                                  var toko = filteredList[index];
+                                  return RequestCard(
+                                    title: toko['nama'] ?? 'Tidak ada nama',
+                                    requestDate: formatDate(toko['created_at']),
+                                    name: toko['jalan'] ?? 'Tidak ada nama',
+                                    address:
+                                        toko['kecamatan'] ?? 'Tidak ada alamat',
+                                    phone: toko['noTelp'] ??
+                                        'Tidak ada nomor telepon',
+                                    status: toko['status'] ?? 'Menunggu',
+                                    tokoId: toko['id'].toString(),
+                                    onDetailPressed: () => showDetailDialog(context, toko),
+                                    // Only pass callbacks if status is "Menunggu"
+                                    onApprove: toko['status'] == 'Menunggu' 
+                                        ? (id) => approveToko(id) 
+                                        : null,
+                                    onReject: toko['status'] == 'Menunggu' 
+                                        ? (id) => rejectToko(id) 
+                                        : null,
+                                  );
+                                },
+                              )),
           ],
         ),
       ),
     );
   }
+}
 
-  void _showLogoutDialog(BuildContext context) {
+void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -328,7 +419,6 @@ class _RequestListPageState extends State<RequestListPage> {
       ),
     );
   }
-}
 
 class FilterButton extends StatelessWidget {
   final String label;
@@ -353,13 +443,15 @@ class FilterButton extends StatelessWidget {
         elevation: 0,
         padding: EdgeInsets.symmetric(vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4.0),
+          borderRadius:
+              BorderRadius.circular(0), // Square corners as per design
         ),
       ),
       child: Text(
         label,
         style: TextStyle(
           fontWeight: FontWeight.w500,
+          fontSize: 14,
         ),
       ),
     );
@@ -373,7 +465,10 @@ class RequestCard extends StatelessWidget {
   final String address;
   final String phone;
   final String status;
+  final String tokoId;
   final VoidCallback onDetailPressed;
+  final Function(String)? onApprove;
+  final Function(String)? onReject;
 
   const RequestCard({
     required this.title,
@@ -382,16 +477,19 @@ class RequestCard extends StatelessWidget {
     required this.address,
     required this.phone,
     required this.status,
+    required this.tokoId,
     required this.onDetailPressed,
+    this.onApprove,
+    this.onReject,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.only(bottom: 16),
-      elevation: 1,
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -411,10 +509,10 @@ class RequestCard extends StatelessWidget {
                 Text(
                   status,
                   style: TextStyle(
-                    color: status == 'Menunggu' 
-                        ? Color(0xFF00796B) 
-                        : status == 'Diterima' 
-                            ? Colors.green 
+                    color: status == 'Menunggu'
+                        ? Color(0xFF00695C)
+                        : status == 'Diterima'
+                            ? Colors.green
                             : Colors.red,
                     fontWeight: FontWeight.w500,
                   ),
@@ -430,42 +528,62 @@ class RequestCard extends StatelessWidget {
               ),
             ),
             SizedBox(height: 12),
-            Text(
-              name,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              address,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[700],
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              phone,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[700],
-              ),
+            // Owner info with placeholder image
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Placeholder image as shown in design
+                Container(
+                  width: 48,
+                  height: 48,
+                  color: Colors.grey[300],
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        address,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        phone,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 12),
+            // Action buttons aligned to the right
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // Detail button
                 SizedBox(
                   height: 32,
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: onDetailPressed,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
+                    style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.black,
-                      elevation: 0,
-                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      side: BorderSide(color: Colors.grey[300]!),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4.0),
                       ),
@@ -476,46 +594,95 @@ class RequestCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
-                SizedBox(
-                  height: 32,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF00796B),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4.0),
+                // Only show Approve and Reject buttons if status is "Menunggu"
+                if (status == 'Menunggu') ...[
+                  SizedBox(width: 8),
+                  // Approve button
+                  SizedBox(
+                    height: 32,
+                    child: ElevatedButton(
+                      onPressed: onApprove != null
+                          ? () async {
+                              final confirmed = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Konfirmasi'),
+                                  content: Text(
+                                      'Anda yakin ingin menyetujui toko ini?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: Text('Batal'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      child: Text('Setujui'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirmed == true) {
+                                onApprove!(tokoId);
+                              }
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF00695C),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'Setuju',
-                      style: TextStyle(fontSize: 12),
+                      child: Text('Setujui'),
                     ),
                   ),
-                ),
-                SizedBox(width: 8),
-                SizedBox(
-                  height: 32,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4.0),
+                  SizedBox(width: 8),
+                  // Reject button
+                  SizedBox(
+                    height: 32,
+                    child: ElevatedButton(
+                      onPressed: onReject != null
+                          ? () async {
+                              final alasan = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Konfirmasi'),
+                                  content:
+                                      Text('Anda yakin ingin menolak toko ini?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: Text('Batal'),
+                                    ),
+                                    TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: Text('Tolak')),
+                                  ],
+                                ),
+                              );
+                              if (alasan == true) {
+                                onReject!(tokoId);
+                              }
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'Tolak',
-                      style: TextStyle(fontSize: 12),
+                      child: Text('Tolak'),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ],

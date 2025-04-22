@@ -1,26 +1,12 @@
+import 'package:carilaundry2/models/toko.dart';
 import 'package:flutter/material.dart';
-import 'package:carilaundry2/pages/store_profile.dart';
+// import 'package:carilaundry2/pages/store_profile.dart';
 
+class TokoCardWidget extends StatelessWidget {
+  final Toko toko;
 
-class TokoCardWidget extends StatefulWidget {
-  final String title;
-  final String logoAsset;
-  final String description;
-  final String price;
+  const TokoCardWidget({Key? key, required this.toko}) : super(key: key);
 
-  const TokoCardWidget({
-    Key? key,
-    required this.title,
-    required this.logoAsset,
-    required this.description,
-    required this.price,
-  }) : super(key: key);
-
-  @override
-  State<TokoCardWidget> createState() => _TokoCardWidgetState();
-}
-
-class _TokoCardWidgetState extends State<TokoCardWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -44,8 +30,8 @@ class _TokoCardWidgetState extends State<TokoCardWidget> {
           Expanded(
             flex: 3,
             child: Center(
-              child: Image.asset(
-                widget.logoAsset,
+              child: Image.network(
+                toko.logo,
                 height: 200,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
@@ -62,29 +48,29 @@ class _TokoCardWidgetState extends State<TokoCardWidget> {
           Expanded(
             flex: 2,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.title,
+                    toko.name,
                     style: const TextStyle(
-                      fontSize:15,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        fontSize: 15, fontWeight: FontWeight.bold),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 7),
-                  Text(
-                    widget.description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      toko.description,
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      maxLines: 10,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  )
                 ],
               ),
             ),
@@ -99,16 +85,14 @@ class _TokoCardWidgetState extends State<TokoCardWidget> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(156, 2, 103, 56),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),  
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 8),
               ),
               child: Text(
-                widget.price,
+                'Detail Toko',
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                    color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ),
