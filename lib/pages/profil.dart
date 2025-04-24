@@ -784,6 +784,7 @@ class _ProfilePageState extends State<ProfilePage> {
             title: "Riwayat Transaksi",
             onTap: () {
               // Navigate to transaction history
+              Navigator.pushNamed(context, "/order-history");
             },
           ),
           Divider(height: 1, color: Colors.grey.shade200),
