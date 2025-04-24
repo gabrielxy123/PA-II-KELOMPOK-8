@@ -269,80 +269,13 @@ class _RequestListPageState extends State<RequestListPage> {
             ),
           ),
           actions: [
-            if (toko['status'] == 'Menunggu') ...[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Konfirmasi penolakan
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Konfirmasi'),
-                      content: Text('Anda yakin ingin menolak toko ini?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Batal'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            rejectToko(toko['id'].toString());
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                          child: Text('Tolak'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
-                ),
-                child: Text('Tolak'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Konfirmasi persetujuan
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Konfirmasi'),
-                      content: Text('Anda yakin ingin menyetujui toko ini?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Batal'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            approveToko(toko['id'].toString());
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF00695C),
-                          ),
-                          child: Text('Setuju'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF00695C),
-                ),
-                child: Text('Setuju'),
-              ),
-            ] else
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Tutup'),
-              ),
+            // Hanya tombol Tutup, tanpa tombol Setuju dan Tolak
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Tutup'),
+            ),
           ],
         );
       },
