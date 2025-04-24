@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carilaundry2/core/apiConstant.dart';
+import 'package:carilaundry2/widgets/payment_proof.dart';
 
 class RequestListPage extends StatefulWidget {
   @override
@@ -14,6 +15,7 @@ class _RequestListPageState extends State<RequestListPage> {
   String activeFilter = 'Menunggu';
   List<dynamic> tokoList = [];
   bool isLoading = true;
+  bool isProcessing = false;
   String errorMessage = '';
 
   @override
@@ -88,6 +90,10 @@ class _RequestListPageState extends State<RequestListPage> {
 
   // Approve toko
   Future<void> approveToko(String tokoId) async {
+    setState(() {
+      isProcessing = true;
+    });
+    
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token') ?? '';
@@ -103,22 +109,47 @@ class _RequestListPageState extends State<RequestListPage> {
       final responseData = json.decode(response.body);
 
       if (response.statusCode == 200 && responseData['success'] == true) {
+        // Update status di local state
+        setState(() {
+          for (var i = 0; i < tokoList.length; i++) {
+            if (tokoList[i]['id'].toString() == tokoId) {
+              tokoList[i]['status'] = 'Diterima';
+              break;
+            }
+          }
+          // Pindah ke tab Diterima
+          activeFilter = 'Diterima';
+        });
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(responseData['message'])),
+          SnackBar(
+            content: Text(responseData['message'] ?? 'Toko berhasil disetujui'),
+            backgroundColor: Colors.green,
+          ),
         );
-        fetchDataToko(); // Refresh data
       } else {
         throw Exception(responseData['message'] ?? 'Gagal menyetujui toko');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
+    } finally {
+      setState(() {
+        isProcessing = false;
+      });
     }
   }
 
   // Reject toko
   Future<void> rejectToko(String tokoId) async {
+    setState(() {
+      isProcessing = true;
+    });
+    
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token') ?? '';
@@ -134,17 +165,38 @@ class _RequestListPageState extends State<RequestListPage> {
       final responseData = json.decode(response.body);
 
       if (response.statusCode == 200 && responseData['success'] == true) {
+        // Update status di local state
+        setState(() {
+          for (var i = 0; i < tokoList.length; i++) {
+            if (tokoList[i]['id'].toString() == tokoId) {
+              tokoList[i]['status'] = 'Ditolak';
+              break;
+            }
+          }
+          // Pindah ke tab Ditolak
+          activeFilter = 'Ditolak';
+        });
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(responseData['message'])),
+          SnackBar(
+            content: Text(responseData['message'] ?? 'Toko berhasil ditolak'),
+            backgroundColor: Colors.orange,
+          ),
         );
-        fetchDataToko(); // Refresh data
       } else {
         throw Exception(responseData['message'] ?? 'Gagal menolak toko');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
+    } finally {
+      setState(() {
+        isProcessing = false;
+      });
     }
   }
 
@@ -154,6 +206,7 @@ class _RequestListPageState extends State<RequestListPage> {
     });
   }
 
+  // Menampilkan dialog detail toko
   void showDetailDialog(BuildContext context, Map<String, dynamic> toko) {
     showDialog(
       context: context,
@@ -170,6 +223,10 @@ class _RequestListPageState extends State<RequestListPage> {
                 SizedBox(height: 8),
                 Text('Kecamatan: ${toko['kecamatan'] ?? 'Tidak ada'}'),
                 SizedBox(height: 8),
+                Text('Kabupaten: ${toko['kabupaten'] ?? 'Tidak ada'}'),
+                SizedBox(height: 8),
+                Text('Provinsi: ${toko['provinsi'] ?? 'Tidak ada'}'),
+                SizedBox(height: 8),
                 Text('Waktu Buka: ${toko['waktuBuka'] ?? 'Tidak ada'}'),
                 SizedBox(height: 8),
                 Text('Waktu Tutup: ${toko['waktuTutup'] ?? 'Tidak ada'}'),
@@ -179,39 +236,190 @@ class _RequestListPageState extends State<RequestListPage> {
                 Text('Tanggal Request: ${formatDate(toko['created_at'])}'),
                 SizedBox(height: 8),
                 Text('Status: ${toko['status'] ?? 'Menunggu'}'),
-                SizedBox(height: 8),
+                SizedBox(height: 16),
+                
+                // Tombol untuk melihat bukti pembayaran
                 if (toko['buktiBayar'] != null && toko['buktiBayar'].isNotEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Bukti Pembayaran:'),
-                      SizedBox(height: 8),
-                      Image.network(
-                        '${Apiconstant.BASE_URL}${toko['buktiBayar']}',
-                        width: 200,
-                        height: 200,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, StackTrace) {
-                          return Text('Gagal Memuat Gambar');
-                        },
-                      )
-                    ],
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      showPaymentProofDialog(context, toko);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF00695C),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.receipt, size: 18),
+                        SizedBox(width: 8),
+                        Text('Lihat Bukti Pembayaran'),
+                      ],
+                    ),
+                  )
+                else
+                  Text('Belum ada bukti pembayaran', 
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontStyle: FontStyle.italic
+                    )
                   ),
-                if (toko['buktiBayar'] == null || toko['buktiBayar'].isEmpty)
-                  Text('Belum ada bukti pembayaran')
               ],
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Tutup'),
-            ),
+            if (toko['status'] == 'Menunggu') ...[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Konfirmasi penolakan
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Konfirmasi'),
+                      content: Text('Anda yakin ingin menolak toko ini?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Batal'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            rejectToko(toko['id'].toString());
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          child: Text('Tolak'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                ),
+                child: Text('Tolak'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Konfirmasi persetujuan
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Konfirmasi'),
+                      content: Text('Anda yakin ingin menyetujui toko ini?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Batal'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            approveToko(toko['id'].toString());
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF00695C),
+                          ),
+                          child: Text('Setuju'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF00695C),
+                ),
+                child: Text('Setuju'),
+              ),
+            ] else
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Tutup'),
+              ),
           ],
         );
       },
+    );
+  }
+
+  // Menampilkan dialog bukti pembayaran
+  void showPaymentProofDialog(BuildContext context, Map<String, dynamic> toko) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PaymentProofDialog(
+          toko: toko,
+          formatDate: formatDate,
+          onBackToDetail: () => showDetailDialog(context, toko),
+        );
+      },
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          "Keluar Akun ?",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        content: Text(
+          "Apakah kamu ingin keluar dari akunmu sekarang ?",
+          style: TextStyle(
+            fontSize: 15,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "Tidak",
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil("/dashboard", (route) => false);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF00695C),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+            child: Text(
+              "Iya, Keluar",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+        contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 24),
+        actionsPadding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+      ),
     );
   }
 
@@ -254,172 +462,132 @@ class _RequestListPageState extends State<RequestListPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Search bar
-            Container(
-              decoration: BoxDecoration(
-                color: Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Cari',
-                  hintStyle: TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            // Filter tabs
-            Row(
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               children: [
-                Expanded(
-                  child: FilterButton(
-                    label: 'Menunggu',
-                    isActive: activeFilter == 'Menunggu',
-                    onPressed: () => updateFilter('Menunggu'),
-                    activeColor:
-                        Color(0xFF00695C), // Dark green color from design
+                // Search bar
+                Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Cari',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      prefixIcon: Icon(Icons.search, color: Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
-                SizedBox(width: 4),
-                Expanded(
-                  child: FilterButton(
-                    label: 'Diterima',
-                    isActive: activeFilter == 'Diterima',
-                    onPressed: () => updateFilter('Diterima'),
-                    activeColor: Color(0xFF00695C),
-                  ),
+                SizedBox(height: 16),
+
+                // Filter tabs
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilterButton(
+                        label: 'Menunggu',
+                        isActive: activeFilter == 'Menunggu',
+                        onPressed: () => updateFilter('Menunggu'),
+                        activeColor:
+                            Color(0xFF00695C), // Dark green color from design
+                      ),
+                    ),
+                    SizedBox(width: 4),
+                    Expanded(
+                      child: FilterButton(
+                        label: 'Diterima',
+                        isActive: activeFilter == 'Diterima',
+                        onPressed: () => updateFilter('Diterima'),
+                        activeColor: Color(0xFF00695C),
+                      ),
+                    ),
+                    SizedBox(width: 4),
+                    Expanded(
+                      child: FilterButton(
+                        label: 'Ditolak',
+                        isActive: activeFilter == 'Ditolak',
+                        onPressed: () => updateFilter('Ditolak'),
+                        activeColor: Color(0xFF00695C),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 4),
+                SizedBox(height: 16),
+
+                // Request list
                 Expanded(
-                  child: FilterButton(
-                    label: 'Ditolak',
-                    isActive: activeFilter == 'Ditolak',
-                    onPressed: () => updateFilter('Ditolak'),
-                    activeColor: Color(0xFF00695C),
-                  ),
+                  child: isLoading
+                      ? Center(child: CircularProgressIndicator(color: Color(0xFF00695C)))
+                      : errorMessage.isNotEmpty
+                          ? Center(
+                              child: Text(
+                                errorMessage,
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            )
+                          : filteredList.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'Tidak Ada Request Toko',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                              : RefreshIndicator(
+                                  onRefresh: fetchDataToko,
+                                  color: Color(0xFF00695C),
+                                  child: ListView.builder(
+                                    itemCount: filteredList.length,
+                                    itemBuilder: (context, index) {
+                                      var toko = filteredList[index];
+                                      return RequestCard(
+                                        title: toko['nama'] ?? 'Tidak ada nama',
+                                        requestDate: formatDate(toko['created_at']),
+                                        name: toko['jalan'] ?? 'Tidak ada nama',
+                                        address:
+                                            toko['kecamatan'] ?? 'Tidak ada alamat',
+                                        phone: toko['noTelp'] ??
+                                            'Tidak ada nomor telepon',
+                                        status: toko['status'] ?? 'Menunggu',
+                                        tokoId: toko['id'].toString(),
+                                        onDetailPressed: () => showDetailDialog(context, toko),
+                                        // Only pass callbacks if status is "Menunggu"
+                                        onApprove: toko['status'] == 'Menunggu' 
+                                            ? (id) => approveToko(id) 
+                                            : null,
+                                        onReject: toko['status'] == 'Menunggu' 
+                                            ? (id) => rejectToko(id) 
+                                            : null,
+                                      );
+                                    },
+                                  ),
+                                ),
                 ),
               ],
             ),
-            SizedBox(height: 16),
-
-            // Request list
-            Expanded(
-                child: isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : errorMessage.isNotEmpty
-                        ? Center(
-                            child: Text(
-                              errorMessage,
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          )
-                        : filteredList.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'Tidak Ada Request Toko',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              )
-                            : ListView.builder(
-                                itemCount: filteredList.length,
-                                itemBuilder: (context, index) {
-                                  var toko = filteredList[index];
-                                  return RequestCard(
-                                    title: toko['nama'] ?? 'Tidak ada nama',
-                                    requestDate: formatDate(toko['created_at']),
-                                    name: toko['jalan'] ?? 'Tidak ada nama',
-                                    address:
-                                        toko['kecamatan'] ?? 'Tidak ada alamat',
-                                    phone: toko['noTelp'] ??
-                                        'Tidak ada nomor telepon',
-                                    status: toko['status'] ?? 'Menunggu',
-                                    tokoId: toko['id'].toString(),
-                                    onDetailPressed: () => showDetailDialog(context, toko),
-                                    // Only pass callbacks if status is "Menunggu"
-                                    onApprove: toko['status'] == 'Menunggu' 
-                                        ? (id) => approveToko(id) 
-                                        : null,
-                                    onReject: toko['status'] == 'Menunggu' 
-                                        ? (id) => rejectToko(id) 
-                                        : null,
-                                  );
-                                },
-                              )),
-          ],
-        ),
+          ),
+          // Overlay loading indicator saat proses update
+          if (isProcessing)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF00695C),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
-void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          "Keluar Akun ?",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        content: Text(
-          "Apakah kamu ingin keluar dari akunmu sekarang ?",
-          style: TextStyle(
-            fontSize: 15,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              "Tidak",
-              style: TextStyle(
-                color: Colors.grey.shade700,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil("/dashboard", (route) => false);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF00796B),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            ),
-            child: Text(
-              "Iya, Keluar",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-        contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 24),
-        actionsPadding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-      ),
-    );
-  }
-
+// FilterButton tetap di file utama
 class FilterButton extends StatelessWidget {
   final String label;
   final bool isActive;
@@ -427,11 +595,12 @@ class FilterButton extends StatelessWidget {
   final Color activeColor;
 
   const FilterButton({
+    Key? key,
     required this.label,
     required this.isActive,
     required this.onPressed,
     this.activeColor = Colors.green,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -443,8 +612,7 @@ class FilterButton extends StatelessWidget {
         elevation: 0,
         padding: EdgeInsets.symmetric(vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(0), // Square corners as per design
+          borderRadius: BorderRadius.circular(0), // Square corners as per design
         ),
       ),
       child: Text(
@@ -458,6 +626,7 @@ class FilterButton extends StatelessWidget {
   }
 }
 
+// RequestCard tetap di file utama
 class RequestCard extends StatelessWidget {
   final String title;
   final String requestDate;
@@ -471,6 +640,7 @@ class RequestCard extends StatelessWidget {
   final Function(String)? onReject;
 
   const RequestCard({
+    Key? key,
     required this.title,
     required this.requestDate,
     required this.name,
@@ -481,7 +651,7 @@ class RequestCard extends StatelessWidget {
     required this.onDetailPressed,
     this.onApprove,
     this.onReject,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -647,7 +817,7 @@ class RequestCard extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: onReject != null
                           ? () async {
-                              final alasan = await showDialog(
+                              final confirmed = await showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: Text('Konfirmasi'),
@@ -660,13 +830,14 @@ class RequestCard extends StatelessWidget {
                                       child: Text('Batal'),
                                     ),
                                     TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        child: Text('Tolak')),
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      child: Text('Tolak'),
+                                    ),
                                   ],
                                 ),
                               );
-                              if (alasan == true) {
+                              if (confirmed == true) {
                                 onReject!(tokoId);
                               }
                             }
