@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class LaundryServiceCardWidget extends StatefulWidget {
+class LaundryServiceCardWidget extends StatelessWidget {
   final String title;
   final String logoAsset;
   final String description;
@@ -14,12 +14,6 @@ class LaundryServiceCardWidget extends StatefulWidget {
     required this.price,
   });
 
-  @override
-  State<LaundryServiceCardWidget> createState() =>
-      _LaundryServiceCardWidgetState();
-}
-
-class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -43,8 +37,8 @@ class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
           Expanded(
             flex: 3,
             child: Center(
-              child: Image.asset(
-                widget.logoAsset,
+              child: Image.network(
+                logoAsset,
                 height: 200,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
@@ -61,13 +55,12 @@ class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
           Expanded(
             flex: 2,
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.title,
+                    title,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -77,7 +70,7 @@ class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
                   ),
                   const SizedBox(height: 7),
                   Text(
-                    widget.description,
+                    description,
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey.shade600,
@@ -104,7 +97,7 @@ class _LaundryServiceCardWidgetState extends State<LaundryServiceCardWidget> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
               ),
               child: Text(
-                widget.price,
+                price,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

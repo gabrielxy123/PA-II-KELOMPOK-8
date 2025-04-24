@@ -1,14 +1,12 @@
-import 'package:carilaundry2/AuthProvider/auth_provider.dart';
+import 'dart:convert';
+import 'package:carilaundry2/core/apiConstant.dart';
 import 'package:flutter/material.dart';
-// import 'package:carilaundry2/widgets/bottom_navigation.dart';
 import 'package:carilaundry2/widgets/search_bar.dart';
 import 'package:carilaundry2/widgets/top_bar.dart';
-import 'package:carilaundry2/widgets/laundry_card.dart';
 import 'package:carilaundry2/widgets/banner_widget.dart';
-import 'package:provider/provider.dart';
-
-// import 'package:carilaundry2/pages/order_history.dart';
-// import 'package:carilaundry2/pages/notifikasi.dart';
+import 'package:carilaundry2/widgets/laundry_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class Dashboard extends StatefulWidget {
   static const routeName = '/dashboard';
@@ -24,10 +22,14 @@ class _DashboardState extends State<Dashboard> {
   int _currentBannerIndex = 0;
   final PageController _pageController = PageController();
 
+  List<dynamic> tokoList = [];
+  bool isLoading = false;
+  String errorMessage = '';
+
   @override
   void initState() {
     super.initState();
-    
+    fetchDataToko();
     Future.delayed(const Duration(seconds: 3), _autoScrollBanner);
   }
 
@@ -54,10 +56,51 @@ class _DashboardState extends State<Dashboard> {
     super.dispose();
   }
 
+  Future<void> fetchDataToko() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse('${Apiconstant.BASE_URL}/index-dashboard-user'),
+        headers: {
+          if (token != null && token.isNotEmpty)
+            'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['data'] != null) {
+          setState(() {
+            tokoList = data['data'];
+          });
+        } else {
+          throw Exception('Data toko tidak ditemukan.');
+        }
+      } else {
+        throw Exception('Gagal memuat data toko: ${response.body}');
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
@@ -76,39 +119,51 @@ class _DashboardState extends State<Dashboard> {
                       });
                     },
                   ),
+                  if (errorMessage.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        errorMessage,
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                 ],
               ),
             ),
             SliverPadding(
               padding: const EdgeInsets.all(16),
-              sliver: SliverGrid(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final services = [
-                      LaundryServiceCardWidget(
-                        title: 'Laundry Sepatu',
-                        logoAsset: 'assets/images/agian.png',
-                        description: 'okokok.',
-                        price: 'Pesan Sekarang',
-                      ),
-                      LaundryServiceCardWidget(
-                        title: 'Laundry Cover',
-                        logoAsset: 'assets/images/fanya.png',
-                        description: 'okokok.',
-                        price: 'Pesan Sekarang',
-                      ),
-                    ];
-                    return services[index % services.length];
-                  },
-                  childCount: 6,
-                ),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.75,
-                ),
-              ),
+              sliver: isLoading
+                  ? const SliverToBoxAdapter(
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : tokoList.isEmpty
+                      ? const SliverToBoxAdapter(
+                          child: Center(child: Text('Tidak ada data toko.')),
+                        )
+                      : SliverGrid(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final toko = tokoList[index];
+                              return LaundryServiceCardWidget(
+                                title: toko['nama'] ?? 'Nama tidak tersedia',
+                                logoAsset: toko['logo'] ??
+                                    'assets/images/default_logo.png',
+                                description:
+                                    toko['jalan'] ?? 'Alamat tidak tersedia',
+                                price: 'Pesan Sekarang',
+                              );
+                            },
+                            childCount: tokoList.length,
+                          ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 0.75,
+                          ),
+                        ),
             ),
           ],
         ),

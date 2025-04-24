@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:carilaundry2/core/apiConstant.dart';
 import 'package:flutter/material.dart';
 import 'package:carilaundry2/widgets/custom_field.dart';
