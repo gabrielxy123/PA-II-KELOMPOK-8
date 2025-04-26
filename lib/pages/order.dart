@@ -35,7 +35,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Riwayat Transaksi'),
+        title: const Text(
+          'Riwayat Transaksi',
+          style: TextStyle(fontSize: 20), // Ditambahkan fontSize
+        ),
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
@@ -43,19 +46,24 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
           indicator: BoxDecoration(
             color: Colors.green,
           ),
-          indicatorSize: TabBarIndicatorSize
-              .tab, // This makes the indicator span the entire tab
+          indicatorSize: TabBarIndicatorSize.tab,
           tabs: const [
             Tab(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                child: Text('Transaksi Terkini'),
+                child: Text(
+                  'Transaksi Terkini',
+                  style: TextStyle(fontSize: 16), // Ditambahkan fontSize
+                ),
               ),
             ),
             Tab(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                child: Text('Selesai'),
+                child: Text(
+                  'Selesai',
+                  style: TextStyle(fontSize: 16), // Ditambahkan fontSize
+                ),
               ),
             ),
           ],
@@ -64,7 +72,6 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Tab Transaksi Terkini
           ListView(
             children: [
               _buildOrderItem(
@@ -76,8 +83,6 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
               ),
             ],
           ),
-          
-          // Tab Selesai
           ListView(
             children: [
               _buildOrderItem(
@@ -110,7 +115,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
           borderRadius: BorderRadius.circular(8),
         ),
         child: SizedBox(
-          height: 100, // Fixed height for consistency
+          height: 100,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -124,14 +129,23 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                     children: [
                       Text(
                         laundryName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16, // Ditambahkan fontSize
+                        ),
                       ),
-                      Text(phoneNumber),
+                      Text(
+                        phoneNumber,
+                        style: const TextStyle(
+                          fontSize: 14, // Ditambahkan fontSize
+                        ),
+                      ),
                       Text(
                         status,
                         style: TextStyle(
                           color: isCompleted ? Colors.green : Colors.orange,
                           fontWeight: FontWeight.bold,
+                          fontSize: 11, // Ditambahkan fontSize
                         ),
                       ),
                     ],
@@ -158,7 +172,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                           ),
                           child: const Text(
                             'Beri Penilaian',
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(
+                              fontSize: 12, // Sudah ada fontSize
+                            ),
                           ),
                         ),
                       )
@@ -199,8 +215,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                           );
                         },
                         child: const Text(
-                          'Lihat Selengkapnya',
-                          style: TextStyle(color: Colors.blue),
+                          'Selengkapnya',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 11, // Ditambahkan fontSize
+                          ),
                         ),
                       ),
               ],
