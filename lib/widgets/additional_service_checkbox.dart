@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/menu.dart';
 
-// This is an adapter class to make the existing widget work with our new model
-class AdditionalServiceItem extends StatelessWidget {
+class AdditionalServiceCheckbox extends StatelessWidget {
   final AdditionalServiceData data;
   final Function(String, bool) onChanged;
 
-  const AdditionalServiceItem({
+  const AdditionalServiceCheckbox({
     super.key,
     required this.data,
     required this.onChanged,
