@@ -18,7 +18,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  final int _selectedIndex = 0;
+  // final int _selectedIndex = 0;
   int _currentBannerIndex = 0;
   final PageController _pageController = PageController();
 
