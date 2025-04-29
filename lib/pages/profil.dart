@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:carilaundry2/pages/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -31,11 +33,14 @@ class _ProfilePageState extends State<ProfilePage> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
+  String? tokoStatus;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
     userProfileFuture = _checkLoginAndFetchProfile();
+    _checkTokoStatus();
   }
 
   Future<UserProfile?> _checkLoginAndFetchProfile() async {
@@ -336,6 +341,52 @@ class _ProfilePageState extends State<ProfilePage> {
       print('Error updating profile: $e');
       _showSnackBar('Error: $e', Colors.red);
     }
+  }
+
+  Future<String> _checkTokoStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+      final response = await http.get(
+        Uri.parse('${Apiconstant.BASE_URL}/toko-saya'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        // Jika status 200, toko diterima
+        return 'Diterima';
+      } else if (response.statusCode == 403) {
+        // Jika status 403, ambil status dari data
+        return data['data']?['status'] ?? 'Tidak Diketahui';
+      } else {
+        throw Exception('Gagal memuat data toko');
+      }
+    } catch (error) {
+      return 'Error';
+    }
+  }
+
+  void _showTokoAlertDialog() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text('Akses Ditolak'),
+              content: Text(
+                tokoStatus == null
+                    ? 'Anda belum mendaftar toko. Silahkan daftar terlebih dahulu.'
+                    : 'Status toko anda: $tokoStatus. Tunggu admin mengapprove permintaan pendaftaran toko anda.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Tutup'),
+                ),
+              ],
+            ));
   }
 
   @override
@@ -791,9 +842,14 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.store,
             title: "Toko Anda",
-            onTap: () {
-              // Navigate to store page
-              Navigator.pushNamed(context, "/tes-approve");
+            onTap: () async {
+              final response = await _checkTokoStatus();
+
+              if (response == "Diterima") {
+                Navigator.pushNamed(context, "/toko-saya");
+              } else {
+                _showTokoAlertDialog();
+              }
             },
           ),
           Divider(height: 1, color: Colors.grey.shade200),
@@ -886,9 +942,41 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, "/register-toko");
-                },
+                onPressed: () async {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    },
+                  );
+                  //Periksa Status Toko
+                  final status = await _checkTokoStatus();
+                  print('Status Toko: $status');
+                  //Tutup indikator loading
+                  Navigator.of(context).pop();
+                  if (status == 'Diterima' || status == 'Menunggu') {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Pemberitahuan'),
+                            content: const Text(
+                                'Anda sudah mendaftarkan toko anda. 1 Akun 1 Toko'),
+                            actions: [
+                              TextButton(
+                                onPressed: Navigator.of(context).pop,
+                                child: Text('Oke'),
+                              ),
+                            ],
+                          );
+                        });
+                  } else {
+                    Navigator.pushNamed(context, "/register-toko");
+                  }
+                  },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Constants.primaryColor,
                   foregroundColor: Colors.white,

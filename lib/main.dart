@@ -1,3 +1,5 @@
+import 'package:carilaundry2/pages/pengusaha/toko_detail.dart';
+import 'package:carilaundry2/pages/pengusaha/toko_profile.dart';
 import 'package:carilaundry2/pages/register.dart';
 import 'package:carilaundry2/pages/store_detail.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -139,7 +141,12 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
           return RequestListPage();
         },
       );
-
+    
+    //Pengusaha
+    case "/toko-saya":
+      return MaterialPageRoute(builder: (context) => TokoDetailPage());
+    case "/profile-toko-saya":
+      return MaterialPageRoute(builder: (context) => TokoProfilePage());
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {

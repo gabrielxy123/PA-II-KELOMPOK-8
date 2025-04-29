@@ -39,7 +39,7 @@ class _RequestListPageState extends State<RequestListPage> {
       isLoading = true;
       errorMessage = '';
     });
-
+  
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token') ?? '';
@@ -254,7 +254,12 @@ class _RequestListPageState extends State<RequestListPage> {
                       children: [
                         Icon(Icons.receipt, size: 18),
                         SizedBox(width: 8),
-                        Text('Lihat Bukti Pembayaran'),
+                        Flexible(
+                        child: Text(
+                          'Lihat Bukti Pembayaran', 
+                          overflow: TextOverflow.ellipsis,
+                          ),
+                        )
                       ],
                     ),
                   )
@@ -371,7 +376,7 @@ class _RequestListPageState extends State<RequestListPage> {
           children: [
             // Profile avatar
             CircleAvatar(
-              backgroundImage: AssetImage('assets/images/profile.png'),
+              backgroundImage: AssetImage('assets/images/logo.png'),
               radius: 20,
             ),
             SizedBox(width: 12),
