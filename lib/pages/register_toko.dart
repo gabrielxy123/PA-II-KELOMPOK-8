@@ -15,21 +15,81 @@ class _TokoState extends State<FormTokoPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController deskripsiController = TextEditingController();
 
+  // Validation function for name
+  String? _validateName(String value) {
+    if (value.isEmpty) {
+      return "Nama toko wajib diisi";
+    }
+    if (value.length > 255) {
+      return "Nama toko maksimal 255 karakter";
+    }
+    return null;
+  }
+
+  // Validation function for phone number
+  String? _validatePhone(String phone) {
+    if (phone.isEmpty) {
+      return "Nomor telepon wajib diisi";
+    }
+    
+    RegExp phoneRegex = RegExp(r'^[0-9]{10,15}$');
+    if (!phoneRegex.hasMatch(phone)) {
+      return "Nomor telepon harus 10-15 digit angka";
+    }
+    return null;
+  }
+
+  // Validation function for email
+  String? _validateEmail(String value) {
+    if (value.isEmpty) {
+      return "Email wajib diisi";
+    }
+    
+    RegExp emailRegex = RegExp(
+      r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+    );
+    if (!emailRegex.hasMatch(value)) {
+      return "Format email tidak valid";
+    }
+    
+    if (value.length > 255) {
+      return "Email maksimal 255 karakter";
+    }
+    return null;
+  }
+
+  // Validation function for description
+  String? _validateDeskripsi(String value) {
+    // Description is nullable, so empty is allowed
+    if (value.isNotEmpty && value.length > 500) {
+      return "Deskripsi maksimal 500 karakter";
+    }
+    return null;
+  }
+
   void _goToNextPage() {
     final String name = nameController.text;
     final String phone = noTelpController.text;
     final String email = emailController.text;
     final String deskripsi = deskripsiController.text;
 
-    // Validasi input
-    if (name.isEmpty || phone.isEmpty || email.isEmpty || deskripsi.isEmpty) {
+    // Validate all fields
+    String? nameError = _validateName(name);
+    String? phoneError = _validatePhone(phone);
+    String? emailError = _validateEmail(email);
+    String? deskripsiError = _validateDeskripsi(deskripsi);
+
+    // Check if there are any validation errors
+    if (nameError != null || phoneError != null || emailError != null || deskripsiError != null) {
+      // Show the first error message
+      String errorMessage = nameError ?? phoneError ?? emailError ?? deskripsiError ?? "Validasi gagal";
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Semua kolom harus diisi!")),
+        SnackBar(content: Text(errorMessage)),
       );
       return;
     }
 
-    // Navigasi ke FormAlamatPage dengan data yang diteruskan
+    // If validation passes, navigate to FormAlamatPage
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -48,7 +108,6 @@ class _TokoState extends State<FormTokoPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("")),
       body: SingleChildScrollView(
-        // Tambahkan ini
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(

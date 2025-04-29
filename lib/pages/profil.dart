@@ -468,8 +468,7 @@ class _ProfilePageState extends State<ProfilePage> {
           SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil("/login", (route) => false);
+              Navigator.pushNamed(context, "/login");
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Constants.primaryColor,

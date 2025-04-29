@@ -23,8 +23,10 @@ class _DashboardState extends State<Dashboard> {
   final PageController _pageController = PageController();
 
   List<dynamic> tokoList = [];
+  List<dynamic> filteredTokoList = [];
   bool isLoading = false;
   String errorMessage = '';
+  String searchQuery = '';
 
   @override
   void initState() {
@@ -81,6 +83,7 @@ class _DashboardState extends State<Dashboard> {
         if (data['data'] != null) {
           setState(() {
             tokoList = data['data'];
+            _filterTokoList(); // Apply any existing search filter
           });
         } else {
           throw Exception('Data toko tidak ditemukan.');
@@ -99,73 +102,107 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
+  void _filterTokoList() {
+    if (searchQuery.isEmpty) {
+      filteredTokoList = List.from(tokoList);
+    } else {
+      filteredTokoList = tokoList.where((toko) {
+        final nama = toko['nama']?.toString().toLowerCase() ?? '';
+        final jalan = toko['jalan']?.toString().toLowerCase() ?? '';
+        final query = searchQuery.toLowerCase();
+        
+        return nama.contains(query) || jalan.contains(query);
+      }).toList();
+    }
+  }
+
+  void _handleSearch(String query) {
+    setState(() {
+      searchQuery = query;
+      _filterTokoList();
+    });
+  }
+
+  Future<void> _handleRefresh() async {
+    return fetchDataToko();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  const TopBarWidget(),
-                  const SearchBarWidget(),
-                  BannerCarouselWidget(
-                    pageController: _pageController,
-                    currentBannerIndex: _currentBannerIndex,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentBannerIndex = index;
-                      });
-                    },
-                  ),
-                  if (errorMessage.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        errorMessage,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
+        child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const TopBarWidget(),
+                    SearchBarWidget(onSearch: _handleSearch),
+                    BannerCarouselWidget(
+                      pageController: _pageController,
+                      currentBannerIndex: _currentBannerIndex,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentBannerIndex = index;
+                        });
+                      },
                     ),
-                ],
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: isLoading
-                  ? const SliverToBoxAdapter(
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-                  : tokoList.isEmpty
-                      ? const SliverToBoxAdapter(
-                          child: Center(child: Text('Tidak ada data toko.')),
-                        )
-                      : SliverGrid(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final toko = tokoList[index];
-                              return LaundryServiceCardWidget(
-                                title: toko['nama'] ?? 'Nama tidak tersedia',
-                                logoAsset: toko['logo'] ??
-                                    'assets/images/default_logo.png',
-                                description:
-                                    toko['jalan'] ?? 'Alamat tidak tersedia',
-                                price: 'Pesan Sekarang',
-                              );
-                            },
-                            childCount: tokoList.length,
-                          ),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 16,
-                            crossAxisSpacing: 16,
-                            childAspectRatio: 0.75,
-                          ),
+                    if (errorMessage.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          errorMessage,
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
                         ),
-            ),
-          ],
+                      ),
+                  ],
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: isLoading
+                    ? const SliverToBoxAdapter(
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : filteredTokoList.isEmpty
+                        ? SliverToBoxAdapter(
+                            child: Center(
+                              child: Text(
+                                searchQuery.isEmpty
+                                    ? 'Tidak ada data toko.'
+                                    : 'Tidak ada hasil untuk "$searchQuery"',
+                              ),
+                            ),
+                          )
+                        : SliverGrid(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final toko = filteredTokoList[index];
+                                return LaundryServiceCardWidget(
+                                  title: toko['nama'] ?? 'Nama tidak tersedia',
+                                  logoAsset: toko['logo'] ??
+                                      'assets/images/default_logo.png',
+                                  description:
+                                      toko['jalan'] ?? 'Alamat tidak tersedia',
+                                  price: 'Pesan Sekarang',
+                                );
+                              },
+                              childCount: filteredTokoList.length,
+                            ),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: 0.75,
+                            ),
+                          ),
+              ),
+            ],
+          ),
         ),
       ),
     );

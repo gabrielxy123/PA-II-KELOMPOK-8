@@ -201,6 +201,10 @@ class _OperasionalState extends State<FormInformasiPage> {
             ),
             const SizedBox(height: 10),
             const Text(
+              "Terakhir, silahkan masukkan jam operasional toko laundry anda.",
+            ),
+            const SizedBox(height: 10),
+            const Text(
               "* Menunjukkan kolom yang wajib diisi",
               style: TextStyle(color: Colors.red),
             ),
@@ -251,9 +255,15 @@ class _OperasionalState extends State<FormInformasiPage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text("Submit"),
+                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: Colors.green.withOpacity(0.2),
+                  foregroundColor: Colors.green,
+                  elevation: 0,
+                ),
+              child: const Text(
+                  "Daftarkan",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
             ),
           ],
         ),

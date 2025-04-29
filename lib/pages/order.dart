@@ -44,7 +44,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.black,
           indicator: BoxDecoration(
-            color: Colors.green,
+            color: Color.fromARGB(156, 2, 103, 56),
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           tabs: const [
@@ -167,13 +167,15 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: Color.fromARGB(156, 2, 103, 56),
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
                           child: const Text(
                             'Beri Penilaian',
                             style: TextStyle(
-                              fontSize: 12, // Sudah ada fontSize
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800
                             ),
                           ),
                         ),

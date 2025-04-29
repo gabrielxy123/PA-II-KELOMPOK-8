@@ -165,26 +165,6 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
                       ),
                     ),
                   ),
-                  // Refresh Button
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: fetchDataToko,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green, // Make the button green
-                      foregroundColor: Colors.white, // Make the icon white
-                      padding: const EdgeInsets.all(12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      // Add elevation for more prominence
-                      elevation: 3,
-                    ),
-                    child: const Icon(
-                      Icons.refresh,
-                      size: 24, // Increase icon size to make it bolder
-                      weight: 700, // Make the icon bolder (if using Material 3)
-                    ),
-                  ),
                 ],
               ),
 
