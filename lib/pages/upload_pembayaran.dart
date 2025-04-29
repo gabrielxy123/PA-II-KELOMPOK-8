@@ -105,7 +105,7 @@ class _UploadPembayaranState extends State<UploadPembayaran> {
                 title: Text('Ambil Foto'),
                 onTap: () {
                   Navigator.of(context).pop();
-                  _pickImage(ImageSource.gallery);
+                  _pickImage(ImageSource.camera);
                 },
               ),
               ListTile(
@@ -123,6 +123,8 @@ class _UploadPembayaranState extends State<UploadPembayaran> {
       },
     );
   }
+
+  
 
   void _showSnackBar(String message, Color backgroundColor) {
     // Clear any existing SnackBars
