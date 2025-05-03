@@ -1,14 +1,87 @@
+import 'package:carilaundry2/core/apiConstant.dart';
 import 'package:flutter/material.dart';
-import 'package:carilaundry2/pages/store_detail.dart';
+import 'dart:convert'; // Untuk decode JSON
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart'; // Untuk request HTTP
 
-class StoreProfilePage extends StatelessWidget {
+class TokoProfileUserPage extends StatefulWidget {
+  @override
+  _TokoProfileUserPageState createState() => _TokoProfileUserPageState();
+}
+
+class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
+  String? _storeName;
+  String? _storeDescription;
+  String? _storeAddress;
+  String? _storeOperationDays;
+  String? _storeOperationHours;
+  String? _storeContact;
+  String? _storeFacebook;
+  String? _storeRating;
+  String? _storeOrders;
+  String? _storeLogo;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchStoreData();
+  }
+
+  Future<void> fetchStoreData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // final token = prefs.getString('auth_token') ?? '';
+      final tokoId = prefs.getInt('id_toko') ?? 0;
+      final response = await http.get(
+        Uri.parse('${Apiconstant.BASE_URL}/detail-toko-user/$tokoId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          setState(() {
+            _storeName = data['data']['nama'];
+            _storeDescription =
+                data['data']['deskripsi'] ?? 'Deskripsi tidak tersedia';
+            _storeAddress = data['data']['jalan'] ?? 'Alamat tidak tersedia';
+            _storeOperationDays =
+                data['data']['waktuBuka'] ?? 'Waktu buka tidak tersedia';
+            _storeOperationHours =
+                data['data']['waktuTutup'] ?? 'Waktu tutup tidak tersedia';
+            _storeContact = data['data']['noTelp'] ?? 'Kontak tidak tersedia';
+            _storeFacebook =
+                data['data']['facebook'] ?? 'Facebook tidak tersedia';
+            _storeRating = data['data']['rating']?.toString() ?? 'N/A';
+            _storeOrders = data['data']['orders']?.toString() ?? 'N/A';
+            _storeLogo = data['data']['logo'];
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _errorMessage = data['message'];
+            _isLoading = false;
+          });
+        }
+      } else {
+        throw Exception('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Gagal mengambil data toko: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Profil Toko - Laundry Agian",
-          style: TextStyle(fontSize: 16, color: Colors.white),
+        title: Text(
+          _isLoading ? 'Loading...' : _storeName ?? 'Toko Tidak Ditemukan',
+          style: const TextStyle(fontSize: 16, color: Colors.white),
         ),
         backgroundColor: const Color(0xFF006A55),
         leading: IconButton(
@@ -19,89 +92,89 @@ class StoreProfilePage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                  ),
-                ],
-                border: Border.all(
-                  color: const Color.fromARGB(255, 0, 0, 0),
-                  width: 1,
-                ),
-              ),
-              child: Image.asset(
-                "assets/images/agian.png",
-                height: 80,
-              ),
-            ),
-
-            const SizedBox(height: 16),
-            const Text(
-              "Laundry Agian",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE4EEEC),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    '"Bersih, Wangi, dan Rapi! ✨"\n\n'
-                    'Kami hadir untuk memberikan layanan laundry terbaik '
-                    'dengan hasil yang bersih, harum, dan rapi. Dari cuci biasa '
-                    'hingga setrika, kami siap membantu Anda menghemat waktu dan tenaga. '
-                    'Dengan layanan cepat dan harga terjangkau, pakaian Anda akan kembali '
-                    'segar seperti baru!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(child: Text(_errorMessage!))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _buildInfoCard(
-                        title: "Rating Toko",
-                        value: "4.8 / 5.0",
-                        icon: Icons.star,
+                      Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                            ),
+                          ],
+                          border: Border.all(
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                            width: 1,
+                          ),
+                        ),
+                        child: _buildLogo(_storeLogo),
                       ),
-                      _buildInfoCard(
-                        title: "Jumlah Pesanan",
-                        value: "200 +",
-                        icon: Icons.list,
+                      const SizedBox(height: 16),
+                      Text(
+                        _storeName ?? 'Nama Tidak Tersedia',
+                        style: const TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE4EEEC),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              _storeDescription ?? '',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildInfoCard(
+                                  title: "Rating Toko",
+                                  value: _storeRating ?? 'N/A',
+                                  icon: Icons.star,
+                                ),
+                                _buildInfoCard(
+                                  title: "Jumlah Pesanan",
+                                  value: _storeOrders ?? 'N/A',
+                                  icon: Icons.list,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildDetailSection("Alamat", _storeAddress ?? ''),
+                            _buildDetailSection(
+                                "Waktu Buka", _storeOperationDays ?? ''),
+                            _buildDetailSection(
+                                "Waktu Tutup", _storeOperationHours ?? ''),
+                            const SizedBox(height: 16),
+                            _buildDetailSection("Kontak", ""),
+                            _buildContactRow("Whatsapp", _storeContact ?? 'N/A',
+                                Icons.phone_android_rounded),
+                            _buildContactRow("Facebook",
+                                _storeFacebook ?? 'N/A', Icons.facebook),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildDetailSection(
-                      "Alamat", "Jl. Balige - Tarutung No. 200"),
-                  _buildDetailSection("Hari Operasional", "Senin - Jumat"),
-                  _buildDetailSection("Jam Operasional", "08.00 - 17.00"),
-                  const SizedBox(height: 16),
-                  _buildDetailSection("Kontak", ""),
-                  _buildContactRow("Whatsapp", "081234567890", Icons.phone_android_rounded),
-                  _buildContactRow("Facebook", "Laundry Agian", Icons.facebook),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+                ),
     );
   }
 
@@ -156,6 +229,43 @@ class StoreProfilePage extends StatelessWidget {
           const SizedBox(width: 8),
           Text(contact),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLogo(String? logoUrl) {
+    if (logoUrl != null && logoUrl.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
+        child: Image.network(
+          logoUrl,
+          height: 80,
+          width: 80,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // Jika gagal memuat gambar
+            return _defaultLogo();
+          },
+        ),
+      );
+    } else {
+      // Jika URL kosong atau null
+      return _defaultLogo();
+    }
+  }
+
+  Widget _defaultLogo() {
+    return Container(
+      height: 80,
+      width: 80,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: const Icon(
+        Icons.local_laundry_service,
+        size: 40,
+        color: Colors.grey,
       ),
     );
   }

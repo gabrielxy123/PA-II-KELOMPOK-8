@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:carilaundry2/core/apiConstant.dart';
-import 'package:carilaundry2/models/toko.dart';
+import 'package:carilaundry2/models/laundry.dart';
 import 'package:flutter/material.dart';
-import 'package:carilaundry2/widgets/toko_card.dart';
+import 'package:carilaundry2/widgets/toko_card.dart'; // You might want to rename this to laundry_card.dart later
 import 'package:http/http.dart' as http;
 
 class StorePage extends StatefulWidget {
@@ -15,55 +15,45 @@ class StorePage extends StatefulWidget {
 class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
 
-  List<Toko> tokoList = [];
-  List<Toko> filteredTokoList = [];
+  List<Laundry> laundryList = []; // Changed from tokoList to laundryList
+  List<Laundry> filteredLaundryList = []; // Changed from filteredTokoList
   bool isLoading = false;
   String errorMessage = '';
-
-  // Add this to track if the page is currently visible
   bool _isCurrentlyVisible = false;
 
   @override
   void initState() {
     super.initState();
-    // Register this object as an observer
     WidgetsBinding.instance.addObserver(this);
-    fetchDataToko();
+    fetchDataLaundry(); // Changed from fetchDataToko
     _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
-    // Unregister the observer
     WidgetsBinding.instance.removeObserver(this);
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
 
-  // This method is called when the app lifecycle state changes
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _isCurrentlyVisible) {
-      // App came back to foreground and this page is visible
-      fetchDataToko();
+      fetchDataLaundry(); // Changed from fetchDataToko
     }
   }
 
-  // Add this method to handle page visibility
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Check if the route is active
     final route = ModalRoute.of(context);
     if (route != null) {
       bool isActive = route.isCurrent;
       if (isActive && !_isCurrentlyVisible) {
-        // Page became visible
         _isCurrentlyVisible = true;
-        fetchDataToko();
+        fetchDataLaundry(); // Changed from fetchDataToko
       } else if (!isActive && _isCurrentlyVisible) {
-        // Page is no longer visible
         _isCurrentlyVisible = false;
       }
     }
@@ -72,75 +62,97 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      filteredTokoList = tokoList.where((toko) {
-        return toko.name.toLowerCase().contains(query);
+      filteredLaundryList = laundryList.where((laundry) {
+        // Changed parameter name from Laundry to laundry
+        return laundry.nama.toLowerCase().contains(query);
       }).toList();
     });
   }
 
-  Future<void> fetchDataToko() async {
-    // Don't fetch if we're already loading
-    if (isLoading) return;
+  Future<void> fetchDataLaundry() async {
+  if (isLoading) return;
 
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
+  setState(() {
+    isLoading = true;
+    errorMessage = '';
+  });
 
-    try {
-      final response = await http.get(
-        Uri.parse('${Apiconstant.BASE_URL}/index-toko-user'),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      );
+  try {
+    final response = await http.get(
+      Uri.parse('${Apiconstant.BASE_URL}/index-toko-user'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    );
 
-      // Check if the widget is still mounted before updating state
-      if (!mounted) return;
+    if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
 
-        if (data['data'] != null) {
-          List<dynamic> tokoJsonList = data['data'];
-          final parsedList =
-              tokoJsonList.map((json) => Toko.fromJson(json)).toList();
+      if (data['data'] != null) {
+        List<dynamic> laundryJsonList = data['data'];
+        final parsedList = laundryJsonList.map((json) {
+          try {
+            return Laundry.fromJson(json);
+          } catch (e) {
+            print('Error parsing laundry item: $e');
+            // Return default laundry item jika parsing gagal
+            return Laundry(
+              id: 0,
+              nama: 'Error',
+              noTelp: '',
+              email: '',
+              deskripsi: '',
+              jalan: '',
+              kecamatan: '',
+              kabupaten: '',
+              provinsi: '',
+              waktuBuka: DateTime.now(),
+              waktuTutup: DateTime.now(),
+              buktiBayar: '',
+              Status: '',
+              logo: '',
+            );
+          }
+        }).toList();
 
-          setState(() {
-            tokoList = parsedList;
-            filteredTokoList = parsedList;
-          });
-        } else {
-          throw Exception('Data toko tidak ditemukan.');
-        }
+        setState(() {
+          laundryList = parsedList;
+          filteredLaundryList = parsedList;
+        });
       } else {
-        throw Exception('Gagal memuat data toko: ${response.body}');
+        throw Exception('Data laundry tidak ditemukan.');
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          errorMessage = e.toString();
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+    } else {
+      throw Exception('Gagal memuat data laundry: ${response.body}');
+    }
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        errorMessage = 'Terjadi kesalahan: ${e.toString()}';
+      });
+    }
+  } finally {
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Toko Laundry'),
+        title: const Text(
+            'Toko Laundry'), // You might want to change this to 'Laundry' if appropriate
       ),
       body: RefreshIndicator(
-        onRefresh: fetchDataToko,
+        onRefresh: fetchDataLaundry, // Changed from fetchDataToko
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -148,7 +160,6 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
               // Search and Refresh Row
               Row(
                 children: [
-                  // Search TextField
                   Expanded(
                     child: TextField(
                       controller: _searchController,
@@ -168,7 +179,6 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
                 ],
               ),
 
-              // Swipe to refresh instruction
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
@@ -181,7 +191,6 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
-                        // fontStyle: FontStyle.italic,
                       ),
                     ),
                   ],
@@ -203,20 +212,25 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
                         Text(errorMessage),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: fetchDataToko,
+                          onPressed:
+                              fetchDataLaundry, // Changed from fetchDataToko
                           child: const Text('Coba Lagi'),
                         ),
                       ],
                     ),
                   ),
                 )
-              else if (filteredTokoList.isEmpty)
+              else if (filteredLaundryList
+                  .isEmpty) // Changed from filteredTokoList
                 const Expanded(
-                    child: Center(child: Text("Toko tidak ditemukan.")))
+                    child: Center(
+                        child: Text(
+                            "Laundry tidak ditemukan."))) // Changed message
               else
                 Expanded(
                   child: GridView.builder(
-                    itemCount: filteredTokoList.length,
+                    itemCount: filteredLaundryList
+                        .length, // Changed from filteredTokoList
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
@@ -225,7 +239,9 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
                       childAspectRatio: 3 / 4,
                     ),
                     itemBuilder: (context, index) {
-                      return TokoCardWidget(toko: filteredTokoList[index]);
+                      return TokoCardWidget(
+                          laundry: filteredLaundryList[
+                              index]); // Assuming TokoCardWidget has been updated to accept Laundry
                     },
                   ),
                 ),

@@ -130,9 +130,9 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
     case "/register-toko":
       return MaterialPageRoute(builder: (context) => FormTokoPage());
     case "/toko-profile":
-      return MaterialPageRoute(builder: (context) => StoreProfilePage());
+      return MaterialPageRoute(builder: (context) => TokoProfileUserPage());
     case "/toko-detail":
-      return MaterialPageRoute(builder: (context) => StoreDetailPage());
+      return MaterialPageRoute(builder: (context) => TokoUserDetailPage());
     case "/upload-pembayaran":
       return MaterialPageRoute(builder: (context) => UploadPembayaran());
     case "/tes-approve":
