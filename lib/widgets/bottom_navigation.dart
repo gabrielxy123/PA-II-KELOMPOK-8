@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carilaundry2/utils/constants.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:carilaundry2/pages/store.dart';
-
 class BottomNavigationBarWidget extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onItemTapped;
@@ -34,7 +32,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       buttonBackgroundColor: Constants.primaryColor.withOpacity(0.1),
       backgroundColor: Color(0xFFF5F7FA),
       animationCurve: Curves.easeInOut,
-      animationDuration: const Duration(milliseconds: 100),
+      animationDuration: const Duration(milliseconds: 200),
       onTap: (index) {
         widget.onItemTapped(index);
       },

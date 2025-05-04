@@ -97,6 +97,7 @@ class _OperasionalState extends State<FormInformasiPage> {
 
     if (token == null) {
       _showErrorDialog("Sesi telah berakhir. Silahkan login kembali");
+      return;
     }
 
     if (name.isEmpty ||
@@ -112,52 +113,57 @@ class _OperasionalState extends State<FormInformasiPage> {
       _showErrorDialog("Semua kolom harus diisi.");
       return;
     }
-
-    _showLoadingDialog();
-
-    try {
-      final token = await getToken();
-      final userId = await getUserId();
-      print('User ID yang akan dikirim: $userId');
-      final response = await http.post(
-        Uri.parse('${Apiconstant.BASE_URL}/store'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization':
-              'Bearer $token', // Ganti $token dengan token sebenarnya
-        },
-        body: jsonEncode({
-          'user_id': userId,
-          'nama': name,
-          'noTelp': phone,
-          'email': email,
-          'deskripsi': deskripsi,
-          'jalan': jalan,
-          'kecamatan': kecamatan,
-          'kabupaten': kabupaten,
-          'provinsi': provinsi,
-          'waktuBuka': waktuBuka,
-          'waktuTutup': waktuTutup,
-        }),
-      );
-
-      Navigator.pop(context);
-
-      if (response.statusCode == 201) {
-        CustomSnackbar.showSuccess(context, "Pendaftaran Toko Berhasil. Silahkan bayar uang sewa toko anda.");
-        Navigator.pushReplacementNamed(context, "/upload-pembayaran");
-      } else {
-        final responseData = jsonDecode(response.body);
-        String errorMessage =
-            responseData['message'] ?? "Pendaftaran gagal. Coba lagi.";
-        _showErrorDialog(errorMessage);
-      }
-    } catch (e) {
-      Navigator.pop(context); // close loading if error
-      _showErrorDialog(
-          "Terjadi kesalahan. Periksa koneksi Anda dan coba lagi.");
-    }
+  
+  // Validate times before proceeding
+  if (!_validateTimes()) {
+    return;
   }
+
+  _showLoadingDialog();
+
+  try {
+    final token = await getToken();
+    final userId = await getUserId();
+    print('User ID yang akan dikirim: $userId');
+    final response = await http.post(
+      Uri.parse('${Apiconstant.BASE_URL}/store'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization':
+            'Bearer $token', // Ganti $token dengan token sebenarnya
+      },
+      body: jsonEncode({
+        'user_id': userId,
+        'nama': name,
+        'noTelp': phone,
+        'email': email,
+        'deskripsi': deskripsi,
+        'jalan': jalan,
+        'kecamatan': kecamatan,
+        'kabupaten': kabupaten,
+        'provinsi': provinsi,
+        'waktuBuka': waktuBuka,
+        'waktuTutup': waktuTutup,
+      }),
+    );
+
+    Navigator.pop(context);
+
+    if (response.statusCode == 201) {
+      CustomSnackbar.showSuccess(context, "Pendaftaran Toko Berhasil. Silahkan bayar uang sewa toko anda.");
+      Navigator.pushReplacementNamed(context, "/upload-pembayaran");
+    } else {
+      final responseData = jsonDecode(response.body);
+      String errorMessage =
+          responseData['message'] ?? "Pendaftaran gagal. Coba lagi.";
+      _showErrorDialog(errorMessage);
+    }
+  } catch (e) {
+    Navigator.pop(context); // close loading if error
+    _showErrorDialog(
+        "Terjadi kesalahan. Periksa koneksi Anda dan coba lagi.");
+  }
+}
 
   // Tambahkan fungsi untuk menampilkan time picker
   Future<void> _selectTime(BuildContext context, bool isBuka) async {
@@ -178,9 +184,42 @@ class _OperasionalState extends State<FormInformasiPage> {
         } else {
           waktuTutupController.text = formattedTime;
         }
-      });
-    }
+      
+      // Validate times if both fields are filled
+      if (waktuBukaController.text.isNotEmpty && waktuTutupController.text.isNotEmpty) {
+        _validateTimes();
+      }
+    });
   }
+}
+
+// Validate that closing time is after opening time
+bool _validateTimes() {
+  if (waktuBukaController.text.isEmpty || waktuTutupController.text.isEmpty) {
+    return true; // Skip validation if either field is empty
+  }
+  
+  // Parse the times
+  final bukaParts = waktuBukaController.text.split(':');
+  final tutupParts = waktuTutupController.text.split(':');
+  
+  if (bukaParts.length < 2 || tutupParts.length < 2) {
+    return true; // Skip validation if format is incorrect
+  }
+  
+  final bukaHour = int.parse(bukaParts[0]);
+  final bukaMinute = int.parse(bukaParts[1]);
+  final tutupHour = int.parse(tutupParts[0]);
+  final tutupMinute = int.parse(tutupParts[1]);
+  
+  // Error Validation klo waktu buka diatas waktu tutup
+  if (tutupHour < bukaHour || (tutupHour == bukaHour && tutupMinute <= bukaMinute)) {
+    _showErrorDialog("Waktu tutup tidak boleh sebelum waktu buka");
+    return false;
+  }
+  
+  return true;
+}
 
   @override
   Widget build(BuildContext context) {

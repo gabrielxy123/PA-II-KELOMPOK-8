@@ -1,5 +1,4 @@
 import 'dart:isolate';
-
 import 'package:carilaundry2/pages/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -9,11 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carilaundry2/models/userProfile.dart';
 import 'package:carilaundry2/utils/constants.dart';
 import 'package:image_picker/image_picker.dart';
-// import 'package:permission_handler/permission_handler.dart';
 import 'package:carilaundry2/main.dart';
-// import 'package:app_settings/app_settings.dart';
 import 'package:carilaundry2/core/apiConstant.dart';
-// import 'package:device_info_plus/device_info_plus.dart';
 import 'package:crypto/crypto.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -370,6 +366,45 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Add this new method to fetch toko data
+  Future<Map<String, dynamic>?> _fetchTokoData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      if (token.isEmpty) {
+        throw Exception('Anda belum Login.');
+      }
+
+      final response = await http.get(
+        Uri.parse('${Apiconstant.BASE_URL}/toko-saya'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      print('Fetch toko data response: ${response.statusCode}');
+      print('Fetch toko data body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 403) {
+        final data = json.decode(response.body);
+        if (data['data'] != null) {
+          // Store toko data in shared preferences for access in upload-pembayaran page
+          final tokoData = data['data'];
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('toko_data', json.encode(tokoData));
+          return tokoData;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching toko data: $e');
+      return null;
+    }
+  }
+
   void _showTokoAlertDialog() {
     showDialog(
         context: context,
@@ -422,7 +457,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   SizedBox(height: 16),
                   _buildMenuItems(context),
                   SizedBox(height: 24),
-                  _buildRegisterStoreCard(),
+                  _buildRegisterStoreCard(), // This will now hide when status is 'Diterima'
                   SizedBox(height: 24),
                 ],
               ),
@@ -833,8 +868,7 @@ class _ProfilePageState extends State<ProfilePage> {
             icon: Icons.history,
             title: "Riwayat Transaksi",
             onTap: () {
-              // Navigate to transaction history
-              Navigator.pushNamed(context, "/order-history");
+              Navigator.pushReplacementNamed(context, "/order-history");
             },
           ),
           Divider(height: 1, color: Colors.grey.shade200),
@@ -905,97 +939,212 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildRegisterStoreCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Punya usaha laundry?",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              "Daftarkan toko Anda sekarang untuk menarik pelanggan lebih banyak lagi.",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (BuildContext context) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    },
-                  );
-                  //Periksa Status Toko
-                  final status = await _checkTokoStatus();
-                  print('Status Toko: $status');
-                  //Tutup indikator loading
-                  Navigator.of(context).pop();
-                  if (status == 'Diterima' || status == 'Menunggu') {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Pemberitahuan'),
-                            content: const Text(
-                                'Anda sudah mendaftarkan toko anda. 1 Akun 1 Toko'),
-                            actions: [
-                              TextButton(
-                                onPressed: Navigator.of(context).pop,
-                                child: Text('Oke'),
-                              ),
-                            ],
-                          );
-                        });
-                  } else {
-                    Navigator.pushNamed(context, "/register-toko");
-                  }
-                  },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Constants.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
+    return FutureBuilder<String>(
+      future: _checkTokoStatus(),
+      builder: (context, snapshot) {
+        // Show loading indicator while checking status
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
                 ),
-                child: Text(
-                  "Daftarkan Toko Kamu",
+              ],
+            ),
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // Hide entire card if status is 'Diterima'
+        if (snapshot.data == 'Diterima') {
+          return SizedBox.shrink();
+        }
+
+        // Special card for 'Belum Bayar' status
+        if (snapshot.data == 'Belum Bayar') {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.orange[50], // Light orange background
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.payment, color: Colors.orange[800]),
+                      SizedBox(width: 8),
+                      Text(
+                        "Pembayaran Belum Dilunasi",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.orange[800],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "Silakan selesaikan pembayaran pendaftaran toko untuk mengaktifkan layanan.",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final tokoData = await _fetchTokoData();
+                        if (tokoData != null) {
+                          Navigator.pushNamed(context, "/upload-pembayaran");
+                        } else {
+                          _showSnackBar('Gagal memuat data toko', Colors.red);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange[800],
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        "Lanjutkan Pembayaran",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Default card for other statuses (no registration or 'Menunggu')
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Punya usaha laundry?",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
-              ),
+                SizedBox(height: 8),
+                Text(
+                  "Daftarkan toko Anda sekarang untuk menarik pelanggan lebih banyak lagi.",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        },
+                      );
+                      final status = await _checkTokoStatus();
+                      print('Status Toko: $status');
+                      Navigator.of(context).pop();
+
+                      if (status == 'Menunggu') {
+                        _showPendingApprovalDialog();
+                      } else if (status == 'Belum Bayar') {
+                        // This case is already handled by the FutureBuilder
+                        return;
+                      } else {
+                        Navigator.pushNamed(context, "/register-toko");
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Constants.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      "Daftarkan Toko Kamu",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+// Helper method for pending approval dialog
+  void _showPendingApprovalDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Pemberitahuan'),
+          content: Text(
+              'Pendaftaran toko Anda sedang dalam proses review oleh admin. Mohon ditunggu konfirmasi selanjutnya.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Oke'),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
