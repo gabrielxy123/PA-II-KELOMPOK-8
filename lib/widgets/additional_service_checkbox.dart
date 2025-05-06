@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import '../models/menu.dart';
 
 class AdditionalServiceCheckbox extends StatelessWidget {
-  final AdditionalServiceData data;
-  final Function(String, bool) onChanged;
+  final String name;
+  final int price;
+  final bool isSelected;
+  final Function(bool) onChanged;
 
   const AdditionalServiceCheckbox({
     super.key,
-    required this.data,
+    required this.name,
+    required this.price,
+    required this.isSelected,
     required this.onChanged,
   });
 
@@ -16,10 +19,10 @@ class AdditionalServiceCheckbox extends StatelessWidget {
     return Row(
       children: [
         Checkbox(
-          value: data.isSelected,
+          value: isSelected,
           onChanged: (value) {
             if (value != null) {
-              onChanged(data.name, value);
+              onChanged(value);
             }
           },
           shape: RoundedRectangleBorder(
@@ -30,7 +33,7 @@ class AdditionalServiceCheckbox extends StatelessWidget {
         ),
         Expanded(
           child: Text(
-            data.name,
+            name,
             style: const TextStyle(
               fontSize: 14,
               color: Colors.black87,
@@ -38,7 +41,7 @@ class AdditionalServiceCheckbox extends StatelessWidget {
           ),
         ),
         Text(
-          'Rp${data.price.toString()}',
+          'Rp$price',
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,

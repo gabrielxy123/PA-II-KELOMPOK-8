@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/menu.dart';
+import '../models/produk.dart';
 
 class ClothingItem extends StatelessWidget {
-  final ClothingItemData data;
+  final Produk data;
   final Function(String, int) onQuantityChanged;
   final bool showPrice;
 
@@ -28,7 +28,7 @@ class ClothingItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Icon(
-              getIconForClothing(data.name),
+              getIconForClothing(data.nama),
               color: Colors.grey[600],
               size: 24,
             ),
@@ -38,7 +38,7 @@ class ClothingItem extends StatelessWidget {
           // Item name
           Expanded(
             child: Text(
-              data.name,
+              data.nama,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -49,7 +49,7 @@ class ClothingItem extends StatelessWidget {
           // Item price (conditional)
           if (showPrice) ...[
             Text(
-              'Rp${data.price.toString()}',
+              'Rp${data.harga.toString()}',
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -64,8 +64,8 @@ class ClothingItem extends StatelessWidget {
               // Decrease button
               InkWell(
                 onTap: () {
-                  if (data.quantity > 0) {
-                    onQuantityChanged(data.name, data.quantity - 1);
+                  if (data.quantity! > 0) {
+                    onQuantityChanged(data.nama, data.quantity! - 1);
                   }
                 },
                 child: Container(
@@ -95,7 +95,7 @@ class ClothingItem extends StatelessWidget {
               // Increase button
               InkWell(
                 onTap: () {
-                  onQuantityChanged(data.name, data.quantity + 1);
+                  onQuantityChanged(data.nama, data.quantity! + 1);
                 },
                 child: Container(
                   width: 24,

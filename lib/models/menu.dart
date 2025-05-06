@@ -1,14 +1,13 @@
 class ClothingItemData {
-  final String name;
-  final int price;
+  final String nama;
+  final int harga;
   int quantity;
-  final String? imageUrl;
+  
 
   ClothingItemData({
-    required this.name,
-    required this.price,
+    required this.nama,
+    required this.harga,
     required this.quantity,
-    this.imageUrl,
   });
 }
 

@@ -11,7 +11,7 @@ class Laundry {
   final DateTime waktuBuka;
   final DateTime waktuTutup;
   final String buktiBayar;
-  final String Status; // Diubah dari 'Status' ke 'status' untuk konsistensi
+  final String Status; 
   final String logo;
 
   Laundry({

@@ -7,6 +7,7 @@ import 'package:carilaundry2/widgets/banner_widget.dart';
 import 'package:carilaundry2/widgets/laundry_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:carilaundry2/models/laundry.dart';
 
 class Dashboard extends StatefulWidget {
   static const routeName = '/dashboard';
@@ -110,7 +111,7 @@ class _DashboardState extends State<Dashboard> {
         final nama = toko['nama']?.toString().toLowerCase() ?? '';
         final jalan = toko['jalan']?.toString().toLowerCase() ?? '';
         final query = searchQuery.toLowerCase();
-        
+
         return nama.contains(query) || jalan.contains(query);
       }).toList();
     }
@@ -188,6 +189,7 @@ class _DashboardState extends State<Dashboard> {
                                   description:
                                       toko['jalan'] ?? 'Alamat tidak tersedia',
                                   price: 'Pesan Sekarang',
+                                  laundryId: toko['id'],
                                 );
                               },
                               childCount: filteredTokoList.length,

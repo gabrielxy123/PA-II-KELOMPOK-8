@@ -1,18 +1,21 @@
+import 'package:carilaundry2/models/laundry.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LaundryServiceCardWidget extends StatelessWidget {
   final String title;
   final String logoAsset;
   final String description;
   final String price;
+  final int laundryId;
 
-  const LaundryServiceCardWidget({
-    super.key,
-    required this.title,
-    required this.logoAsset,
-    required this.description,
-    required this.price,
-  });
+  const LaundryServiceCardWidget(
+      {super.key,
+      required this.title,
+      required this.logoAsset,
+      required this.description,
+      required this.price,
+      required this.laundryId});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +58,8 @@ class LaundryServiceCardWidget extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -86,9 +90,7 @@ class LaundryServiceCardWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, "/order-menu");
-              },
+              onPressed: () => _saveLaundryIdAndNavigate(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(156, 2, 103, 56),
                 shape: RoundedRectangleBorder(
@@ -108,5 +110,19 @@ class LaundryServiceCardWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _saveLaundryIdAndNavigate(BuildContext context) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('id_toko', laundryId); // Simpan ID laundry
+
+      // Navigasi ke halaman detail dengan membawa objek laundry
+      Navigator.pushNamed(context, "/order-menu", arguments: laundryId);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menyimpan ID laundry: $e')),
+      );
+    }
   }
 }
