@@ -1043,6 +1043,54 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         }
 
+        if (snapshot.data == 'Menunggu') {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.orange[50], // Light orange background
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.timer, color: Colors.yellow[800]),
+                      SizedBox(width: 8),
+                      Text(
+                        "Permintaan Belum Disetujui",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.yellow[800],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "Mohon menunggu Admin untuk melakukan peninjauan  .",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  
+                ],
+              ),
+            ),
+          );
+        }
+
         // Default card for other statuses (no registration or 'Menunggu')
         return Container(
           decoration: BoxDecoration(
@@ -1093,15 +1141,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       final status = await _checkTokoStatus();
                       print('Status Toko: $status');
                       Navigator.of(context).pop();
-
-                      if (status == 'Menunggu') {
-                        _showPendingApprovalDialog();
-                      } else if (status == 'Belum Bayar') {
-                        // This case is already handled by the FutureBuilder
-                        return;
-                      } else {
                         Navigator.pushNamed(context, "/register-toko");
-                      }
+                      
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Constants.primaryColor,
@@ -1128,25 +1169,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-// Helper method for pending approval dialog
-  void _showPendingApprovalDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Pemberitahuan'),
-          content: Text(
-              'Pendaftaran toko Anda sedang dalam proses review oleh admin. Mohon ditunggu konfirmasi selanjutnya.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Oke'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
