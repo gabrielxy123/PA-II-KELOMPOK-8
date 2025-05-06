@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:carilaundry2/widgets/custom_field.dart';
 import 'package:carilaundry2/pages/form_informasi.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class FormAlamatPage extends StatefulWidget {
   final String name;
@@ -21,12 +23,118 @@ class FormAlamatPage extends StatefulWidget {
 }
 
 class _AlamatState extends State<FormAlamatPage> {
-  TextEditingController provinsiController = TextEditingController();
-  TextEditingController kabupatenController = TextEditingController();
-  TextEditingController kecamatanController = TextEditingController();
   TextEditingController jalanController = TextEditingController();
+  
+  // Untuk dropdown
+  List<Map<String, dynamic>> provinces = [];
+  List<Map<String, dynamic>> regencies = [];
+  List<Map<String, dynamic>> districts = [];
+  
+  String? selectedProvinceId;
+  String? selectedRegencyId;
+  String? selectedDistrictId;
+  
+  String? selectedProvinceName;
+  String? selectedRegencyName;
+  String? selectedDistrictName;
+  
+  bool isLoadingProvinces = false;
+  bool isLoadingRegencies = false;
+  bool isLoadingDistricts = false;
 
-  // Validation function for address fields
+  @override
+  void initState() {
+    super.initState();
+    _loadProvinces();
+  }
+
+  Future<void> _loadProvinces() async {
+    setState(() => isLoadingProvinces = true);
+    try {
+      final response = await http.get(
+        Uri.parse('https://emsifa.github.io/api-wilayah-indonesia/api/provinces.json')
+      );
+      
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        setState(() {
+          provinces = data.map((province) => {
+            'id': province['id'].toString(),
+            'name': province['name']
+          }).toList();
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memuat provinsi: $e')),
+      );
+    } finally {
+      setState(() => isLoadingProvinces = false);
+    }
+  }
+
+  Future<void> _loadRegencies(String provinceId) async {
+    setState(() {
+      selectedRegencyId = null;
+      selectedRegencyName = null;
+      regencies = [];
+      isLoadingRegencies = true;
+    });
+    
+    try {
+      final response = await http.get(
+        Uri.parse('https://emsifa.github.io/api-wilayah-indonesia/api/regencies/$provinceId.json')
+      );
+      
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        setState(() {
+          regencies = data.map((regency) => {
+            'id': regency['id'].toString(),
+            'name': regency['name']
+          }).toList();
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memuat kabupaten/kota: $e')),
+      );
+    } finally {
+      setState(() => isLoadingRegencies = false);
+    }
+  }
+
+  Future<void> _loadDistricts(String regencyId) async {
+    setState(() {
+      selectedDistrictId = null;
+      selectedDistrictName = null;
+      districts = [];
+      isLoadingDistricts = true;
+    });
+    
+    try {
+      final response = await http.get(
+        Uri.parse('https://emsifa.github.io/api-wilayah-indonesia/api/districts/$regencyId.json')
+      );
+      
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        setState(() {
+          districts = data.map((district) => {
+            'id': district['id'].toString(),
+            'name': district['name']
+          }).toList();
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memuat kecamatan: $e')),
+      );
+    } finally {
+      setState(() => isLoadingDistricts = false);
+    }
+  }
+
   String? _validateAddressField(String value, String fieldName) {
     if (value.isEmpty) {
       return "$fieldName wajib diisi";
@@ -38,23 +146,19 @@ class _AlamatState extends State<FormAlamatPage> {
   }
 
   void _goToNextPage() {
-    final String provinsi = provinsiController.text;
-    final String kabupaten = kabupatenController.text;
-    final String kecamatan = kecamatanController.text;
     final String jalan = jalanController.text;
 
     // Validate all fields
     String? jalanError = _validateAddressField(jalan, "Alamat jalan");
-    String? kecamatanError = _validateAddressField(kecamatan, "Kecamatan");
-    String? kabupatenError = _validateAddressField(kabupaten, "Kabupaten");
-    String? provinsiError = _validateAddressField(provinsi, "Provinsi");
+    String? provinsiError = selectedProvinceId == null ? "Provinsi wajib dipilih" : null;
+    String? kabupatenError = selectedRegencyId == null ? "Kabupaten/Kota wajib dipilih" : null;
+    String? kecamatanError = selectedDistrictId == null ? "Kecamatan wajib dipilih" : null;
 
     // Check if there are any validation errors
-    if (jalanError != null || kecamatanError != null || 
-        kabupatenError != null || provinsiError != null) {
-      // Show the first error message
-      String errorMessage = jalanError ?? kecamatanError ?? 
-                           kabupatenError ?? provinsiError ?? "Validasi gagal";
+    if (jalanError != null || provinsiError != null || 
+        kabupatenError != null || kecamatanError != null) {
+      String errorMessage = jalanError ?? provinsiError ?? 
+                          kabupatenError ?? kecamatanError ?? "Validasi gagal";
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
@@ -71,9 +175,9 @@ class _AlamatState extends State<FormAlamatPage> {
           email: widget.email,
           deskripsi: widget.deskripsi,
           jalan: jalan,
-          kecamatan: kecamatan,
-          kabupaten: kabupaten,
-          provinsi: provinsi,
+          kecamatan: selectedDistrictName!,
+          kabupaten: selectedRegencyName!,
+          provinsi: selectedProvinceName!,
         ),
       ),
     );
@@ -110,6 +214,8 @@ class _AlamatState extends State<FormAlamatPage> {
                 style: TextStyle(color: Colors.red),
               ),
               const SizedBox(height: 20),
+              
+              // Alamat Jalan
               const Text(
                 "Alamat Jalan *",
                 style: TextStyle(
@@ -126,38 +232,8 @@ class _AlamatState extends State<FormAlamatPage> {
                 radius: 12,
               ),
               const SizedBox(height: 20),
-              const Text(
-                "Kecamatan *",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              CustomField(
-                label: "*Kecamatan",
-                controller: kecamatanController,
-                isPassword: false,
-                textInputType: TextInputType.streetAddress,
-                radius: 12,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Kabupaten *",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              CustomField(
-                label: "*Kabupaten",
-                controller: kabupatenController,
-                isPassword: false,
-                textInputType: TextInputType.streetAddress,
-                radius: 12,
-              ),
-              const SizedBox(height: 20),
+              
+              // Dropdown Provinsi
               const Text(
                 "Provinsi *",
                 style: TextStyle(
@@ -166,14 +242,117 @@ class _AlamatState extends State<FormAlamatPage> {
                 ),
               ),
               const SizedBox(height: 10),
-              CustomField(
-                label: "*Provinsi",
-                controller: provinsiController,
-                isPassword: false,
-                textInputType: TextInputType.streetAddress,
-                radius: 12,
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    hint: const Text("Pilih Provinsi"),
+                    value: selectedProvinceId,
+                    items: provinces.map((province) {
+                      return DropdownMenuItem<String>(
+                        value: province['id'],
+                        child: Text(province['name']),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedProvinceId = newValue;
+                        selectedProvinceName = provinces.firstWhere(
+                          (province) => province['id'] == newValue)['name'];
+                        _loadRegencies(newValue!);
+                      });
+                    },
+                  ),
+                ),
               ),
+              if (isLoadingProvinces) const LinearProgressIndicator(),
               const SizedBox(height: 20),
+              
+              // Dropdown Kabupaten/Kota
+              const Text(
+                "Kabupaten/Kota *",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    hint: const Text("Pilih Kabupaten/Kota"),
+                    value: selectedRegencyId,
+                    items: regencies.map((regency) {
+                      return DropdownMenuItem<String>(
+                        value: regency['id'],
+                        child: Text(regency['name']),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedRegencyId = newValue;
+                        selectedRegencyName = regencies.firstWhere(
+                          (regency) => regency['id'] == newValue)['name'];
+                        _loadDistricts(newValue!);
+                      });
+                    },
+                  ),
+                ),
+              ),
+              if (isLoadingRegencies) const LinearProgressIndicator(),
+              const SizedBox(height: 20),
+              
+              // Dropdown Kecamatan
+              const Text(
+                "Kecamatan *",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    hint: const Text("Pilih Kecamatan"),
+                    value: selectedDistrictId,
+                    items: districts.map((district) {
+                      return DropdownMenuItem<String>(
+                        value: district['id'],
+                        child: Text(district['name']),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedDistrictId = newValue;
+                        selectedDistrictName = districts.firstWhere(
+                          (district) => district['id'] == newValue)['name'];
+                      });
+                    },
+                  ),
+                ),
+              ),
+              if (isLoadingDistricts) const LinearProgressIndicator(),
+              const SizedBox(height: 20),
+              
+              // Tombol Selanjutnya
               ElevatedButton(
                 onPressed: _goToNextPage,
                 style: ElevatedButton.styleFrom(

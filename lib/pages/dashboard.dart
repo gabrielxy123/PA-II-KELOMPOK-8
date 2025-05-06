@@ -109,7 +109,7 @@ class _DashboardState extends State<Dashboard> {
     } else {
       filteredTokoList = tokoList.where((toko) {
         final nama = toko['nama']?.toString().toLowerCase() ?? '';
-        final jalan = toko['jalan']?.toString().toLowerCase() ?? '';
+        final jalan = toko['kecamatans']?.toString().toLowerCase() ?? '';
         final query = searchQuery.toLowerCase();
 
         return nama.contains(query) || jalan.contains(query);

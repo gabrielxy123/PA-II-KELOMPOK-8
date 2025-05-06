@@ -86,14 +86,6 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage> {
           icon: Icon(Icons.arrow_back, size: 15),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit, size: 20),
-            onPressed: () {
-              // Aksi untuk edit toko
-            },
-          ),
-        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())

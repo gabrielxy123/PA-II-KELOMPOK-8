@@ -148,6 +148,7 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
         title: const Text(
             'Toko Laundry'), // You might want to change this to 'Laundry' if appropriate
       ),
