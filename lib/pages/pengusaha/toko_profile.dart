@@ -20,6 +20,8 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
   String? _storeRating;
   String? _storeOrders;
   String? _storeLogo;
+  String? _kecamatan;
+  String? _kabupaten;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -49,6 +51,8 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
             _storeDescription =
                 data['data']['deskripsi'] ?? 'Deskripsi tidak tersedia';
             _storeAddress = data['data']['jalan'] ?? 'Alamat tidak tersedia';
+            _kecamatan = data['data']['kecamatan'] ?? 'Kecamatan tidak disertakan';
+            _kabupaten = data['data']['kabupaten'] ?? 'Kabupaten tidak disertakan';
             _storeOperationDays =
                 data['data']['waktuBuka'] ?? 'Waktu buka tidak tersedia';
             _storeOperationHours =
@@ -162,6 +166,8 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
                             ),
                             const SizedBox(height: 16),
                             _buildDetailSection("Alamat", _storeAddress ?? ''),
+                            _buildDetailSection("Kecamatan", _kecamatan ?? ''),
+                            _buildDetailSection("Kabupaten", _kabupaten ?? ''),
                             _buildDetailSection(
                                 "Waktu Buka", _storeOperationDays ?? ''),
                             _buildDetailSection(
