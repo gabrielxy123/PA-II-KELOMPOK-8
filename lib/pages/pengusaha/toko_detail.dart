@@ -193,7 +193,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
   }
 
   Future<void> _addNewService(
-      String categoryId, String nama, String harga) async {
+      String categoryId, String nama, double? harga) async {
     setState(() {
       _isAddingProduct = true;
     });
@@ -328,7 +328,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
               TextField(
                 controller: hargaController,
                 decoration:
-                    InputDecoration(labelText: 'Harga Produk (Jika Satuan)'),
+                    InputDecoration(labelText: 'Harga Produk (Opsional)'),
                 keyboardType: TextInputType.number,
               ),
             ],
@@ -344,31 +344,31 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                 ? null
                 : () async {
                     if (selectedCategory == null ||
-                        namaController.text.isEmpty ||
-                        hargaController.text.isEmpty) {
+                        namaController.text.isEmpty) {
                       // Added harga check
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Harap isi semua field')),
                       );
                       return;
                     }
-                    // Validate harga is a number
-                    if (double.tryParse(hargaController.text) == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Harga harus berupa angka')),
-                      );
-                      return;
+                    // Handle harga opsional
+                    double? harga;
+                    if (hargaController.text.isNotEmpty) {
+                      harga = double.tryParse(hargaController.text);
+                      if (harga == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Harga harus berupa angka')),
+                        );
+                        return;
+                      }
                     }
 
                     await _addNewService(
                       selectedCategory!,
                       namaController.text,
-                      hargaController.text,
+                      harga,
                     );
 
-                    // Only pop if not still adding (e.g. error occurred but _isAddingProduct was reset)
-                    // or if successful. The current logic is okay because _isAddingProduct
-                    // is set to false in the finally block of _addNewService.
                     if (mounted && !_isAddingProduct) {
                       // Check mounted
                       Navigator.pop(context);

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:carilaundry2/models/layanan.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -18,21 +19,57 @@ class OrderDetailScreen extends StatefulWidget {
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final TextEditingController _notesController = TextEditingController();
   bool _isLoading = true;
+  List<Layanan> _additionalServices = [];
   List<Kategori> _kategories = [];
   List<Produk> _produks = [];
   Map<String, String> _selectedServiceTypes = {};
   String? _storeName;
   bool get _isProdukEmpty => _produks.isEmpty;
 
-  final List<Map<String, dynamic>> additionalServices = [
-    {'id': 1, 'name': 'Extra Pelembut', 'price': 5000, 'isSelected': false},
-    {'id': 2, 'name': 'Extra Pewangi', 'price': 3000, 'isSelected': false},
-  ];
-
   @override
   void initState() {
     super.initState();
     _loadData();
+    _fetchAdditionalServices();
+  }
+
+  Future<List<Layanan>> fetchLayanan() async {
+    final prefs = await SharedPreferences.getInstance();
+    final tokoId = prefs.getInt('id_toko') ?? 0;
+
+    try {
+      final response = await http.get(
+        Uri.parse('${Apiconstant.BASE_URL}/layanan-produks/$tokoId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['data'] != null) {
+          final List<dynamic> layananList = data['data'];
+          return layananList.map((json) => Layanan.fromJson(json)).toList();
+        }
+      }
+      return []; // Return empty list if error
+    } catch (e) {
+      print('Error fetching layanan: $e');
+      return [];
+    }
+  }
+
+  Future<void> _fetchAdditionalServices() async {
+    try {
+      final layananList = await fetchLayanan();
+      setState(() {
+        _additionalServices = layananList;
+      });
+    } catch (e) {
+      print('Error loading additional services: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memuat layanan tambahan')),
+        );
+      }
+    }
   }
 
   Future<void> _loadData() async {
@@ -122,9 +159,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   int get _additionalServicesSubtotal {
-    return additionalServices
-        .where((service) => service['isSelected'] == true)
-        .fold(0, (sum, service) => sum + (service['price'] as int));
+    return _additionalServices
+        .where((service) => service.isSelected)
+        .fold(0, (sum, service) => sum + service.harga.toInt());
   }
 
   int get _total {
@@ -148,14 +185,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     });
   }
 
-  void _toggleAdditionalService(int serviceId, bool value) {
+  void _toggleAdditionalService(String serviceId, bool value) {
     setState(() {
-      final index = additionalServices.indexWhere((s) => s['id'] == serviceId);
+      final index = _additionalServices.indexWhere((s) => s.id == serviceId);
       if (index != -1) {
-        additionalServices[index]['isSelected'] = value;
+        _additionalServices[index].isSelected = value;
       }
     });
   }
+
 
   Future<void> _submitOrder() async {
     setState(() => _isLoading = true);
@@ -165,6 +203,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       final token = prefs.getString('auth_token') ?? '';
       final tokoId = prefs.getInt('id_toko') ?? 0;
 
+      // Validasi minimal
+      if (_produks.every((produk) => (produk.quantity ?? 0) == 0)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tidak ada produk yang dipilih')),
+        );
+        return;
+      }
+
+      // Hitung total
+      double total = 0;
+      
+      // Hitung dari produk
+      for (var produk in _produks) {
+        if ((produk.quantity ?? 0) > 0) {
+          total += (produk.harga ?? 0) * (produk.quantity ?? 0);
+        }
+      }
+      
+      // Hitung dari layanan tambahan
+      for (var service in _additionalServices) {
+        if (service.isSelected) {
+          total += service.harga ?? 0;
+        }
+      }
+
       final orderData = {
         'toko_id': tokoId,
         'items': [
@@ -173,24 +236,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               {
                 'produk_id': produk.id,
                 'quantity': produk.quantity ?? 0,
-                'harga': produk.harga,
-                'jenis_layanan': _getServiceTypeForProduk(produk),
+                'harga': produk.harga, // Pastikan harga dikirim
               },
         ],
         'layanan_tambahan': [
-          for (var service in additionalServices)
-            if (service['isSelected'] == true)
+          for (var service in _additionalServices)
+            if (service.isSelected)
               {
-                'layanan_id': service['id'],
-                'harga': service['price'],
+                'layanan_id': service.id,
+                'harga': service.harga,
               },
         ],
         'catatan': _notesController.text,
-        'total': _total,
+        'total': total, // Kirim total yang sudah dihitung
       };
 
+      // Debug: Print data yang akan dikirim
+      print('Order Data to Send: ${json.encode(orderData)}');
+
       final response = await http.post(
-        Uri.parse('${Apiconstant.BASE_URL}/orders'),
+        Uri.parse('${Apiconstant.BASE_URL}/transaksi'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -198,17 +263,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         body: json.encode(orderData),
       );
 
+      final responseData = json.decode(response.body);
+      print('Response from Server: $responseData');
+
       if (response.statusCode == 201) {
         if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pesanan berhasil dibuat')),
+          );
           Navigator.of(context).pop(true);
         }
       } else {
         throw Exception('Gagal membuat pesanan: ${response.body}');
       }
     } catch (e) {
+      print('Error submitting order: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal membuat pesanan: $e')),
+          SnackBar(content: Text('Gagal membuat pesanan: ${e.toString()}')),
         );
       }
     } finally {
@@ -216,8 +288,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         setState(() => _isLoading = false);
       }
     }
-  }
-
+}
+  
   String _getServiceTypeForProduk(Produk produk) {
     try {
       final kategori = _kategories.firstWhere(
@@ -327,7 +399,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ),
 
                   // Additional Services
-                  if (additionalServices.isNotEmpty) ...[
+                  // Ganti bagian Additional Services di build method
+                  if (_additionalServices.isNotEmpty) ...[
                     const Text(
                       'Layanan Tambahan',
                       style: TextStyle(
@@ -336,13 +409,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ...additionalServices.map(
+                    ..._additionalServices.map(
                       (service) => AdditionalServiceCheckbox(
-                        name: service['name'],
-                        price: service['price'],
-                        isSelected: service['isSelected'],
-                        onChanged: (value) =>
-                            _toggleAdditionalService(service['id'], value),
+                        name: service.nama,
+                        price: service.harga.toInt(),
+                        isSelected: service.isSelected,
+                        onChanged: (value) => _toggleAdditionalService(
+                            service.id, value ?? false),
                       ),
                     ),
                     if (_additionalServicesSubtotal > 0)
