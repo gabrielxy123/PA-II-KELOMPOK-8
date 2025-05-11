@@ -1,27 +1,125 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:carilaundry2/pages/order_detail.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import 'package:carilaundry2/core/apiConstant.dart';
+import 'package:carilaundry2/pages/order_detail_nota.dart';
 import 'package:carilaundry2/pages/order_rating.dart';
-import 'package:carilaundry2/widgets/bottom_navigation.dart';
-import 'package:carilaundry2/widgets/search_bar.dart';
-import 'package:carilaundry2/widgets/top_bar.dart';
-import 'package:carilaundry2/widgets/laundry_card.dart';
-import 'package:carilaundry2/widgets/banner_widget.dart';
+
+class Transaction {
+  final String kodeTransaksi;
+  final String namaToko;
+  final String kontakToko;
+  final String status;
+  final int idToko;
+  final String createdAt;
+  final bool isCompleted;
+  final int totalItems;
+  final int totalAmount;
+
+  Transaction({
+    required this.kodeTransaksi,
+    required this.namaToko,
+    required this.kontakToko,
+    required this.status,
+    required this.idToko,
+    required this.createdAt,
+    required this.isCompleted,
+    required this.totalItems,
+    required this.totalAmount,
+  });
+
+  factory Transaction.fromJson(Map<String, dynamic> json) {
+    return Transaction(
+      kodeTransaksi: json['kode_transaksi'] ?? '',
+      namaToko: json['nama_toko'] ?? 'Tidak diketahui',
+      kontakToko: json['kontak_toko'] ?? '-',
+      status: json['status'] ?? 'Menunggu',
+      idToko: json['id_toko'] ?? 0,
+      createdAt: json['created_at'] ?? '',
+      isCompleted: json['is_completed'] ?? false,
+      totalItems: json['total_items'] ?? 0,
+      totalAmount: json['total_amount'] ?? 0,
+    );
+  }
+}
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
 
   @override
-  _OrderHistoryPageState createState() => _OrderHistoryPageState();
+  State<OrderHistoryPage> createState() => _OrderHistoryPageState();
 }
 
 class _OrderHistoryPageState extends State<OrderHistoryPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  List<Transaction> _transactions = [];
+  bool _isLoading = true;
+  String? _error;
+
+  final String apiUrl = '${Apiconstant.BASE_URL}/transaksi/riwayat';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _fetchTransactions();
+  }
+
+  Future<void> _fetchTransactions() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      if (token == null) {
+        throw Exception('Token tidak ditemukan. Silakan login kembali.');
+      }
+
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as List<dynamic>;
+        final transactions = data.map((e) => Transaction.fromJson(e)).toList();
+        setState(() {
+          _transactions = transactions;
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Gagal memuat data: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  String formatCurrency(int amount) {
+    return NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0)
+        .format(amount);
+  }
+
+  String formatDate(String date) {
+    try {
+      final parsed = DateTime.parse(date);
+      return DateFormat('dd MMM yyyy', 'id_ID').format(parsed);
+    } catch (_) {
+      return date;
+    }
   }
 
   @override
@@ -32,200 +130,145 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
 
   @override
   Widget build(BuildContext context) {
+    final ongoing = _transactions.where((t) => !t.isCompleted).toList();
+    final completed = _transactions.where((t) => t.isCompleted).toList();
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text(
-          'Riwayat Transaksi',
-          style: TextStyle(fontSize: 20), // Ditambahkan fontSize
-        ),
+        title: const Text('Riwayat Transaksi'),
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.black,
-          indicator: BoxDecoration(
-            color: Color.fromARGB(156, 2, 103, 56),
-          ),
-          indicatorSize: TabBarIndicatorSize.tab,
+          indicator: BoxDecoration(color: Color.fromARGB(156, 2, 103, 56)),
           tabs: const [
-            Tab(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                child: Text(
-                  'Transaksi Terkini',
-                  style: TextStyle(fontSize: 16), // Ditambahkan fontSize
-                ),
-              ),
-            ),
-            Tab(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                child: Text(
-                  'Selesai',
-                  style: TextStyle(fontSize: 16), // Ditambahkan fontSize
-                ),
-              ),
-            ),
+            Tab(text: 'Transaksi Terkini'),
+            Tab(text: 'Selesai'),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          ListView(
-            children: [
-              _buildOrderItem(
-                laundryName: 'AGIAN LAUNDRY',
-                phoneNumber: '(123-456-789)',
-                status: 'Sedang Diproses',
-                orderNumber: 'ORD-001',
-                isCompleted: false,
-              ),
-            ],
-          ),
-          ListView(
-            children: [
-              _buildOrderItem(
-                laundryName: 'AGIAN LAUNDRY',
-                phoneNumber: '(123-456-789)',
-                status: 'Selesai',
-                orderNumber: 'ORD-002',
-                isCompleted: true,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderItem({
-    required String laundryName,
-    required String phoneNumber,
-    required String status,
-    required String orderNumber,
-    required bool isCompleted,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Card(
-        elevation: 2,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: SizedBox(
-          height: 100,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Image.asset('assets/images/agian.png', width: 50, height: 50),
-                const SizedBox(width: 12),
-                Expanded(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        laundryName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16, // Ditambahkan fontSize
-                        ),
-                      ),
-                      Text(
-                        phoneNumber,
-                        style: const TextStyle(
-                          fontSize: 14, // Ditambahkan fontSize
-                        ),
-                      ),
-                      Text(
-                        status,
-                        style: TextStyle(
-                          color: isCompleted ? Colors.green : Colors.orange,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11, // Ditambahkan fontSize
-                        ),
+                      Text(_error!, style: TextStyle(color: Colors.red)),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchTransactions,
+                        child: Text('Coba Lagi'),
                       ),
                     ],
                   ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchTransactions,
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildTransactionList(ongoing),
+                      _buildTransactionList(completed),
+                    ],
+                  ),
                 ),
-                isCompleted
-                    ? SizedBox(
-                        width: 120,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OrderReviewPage(
-                                  laundryName: laundryName,
-                                  orderId: orderNumber,
-                                ),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(156, 2, 103, 56),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                          ),
-                          child: const Text(
-                            'Beri Penilaian',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800
-                            ),
-                          ),
-                        ),
-                      )
-                    : InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => OrderDetailPage(
-                                customerName: 'Budi Soetomo',
-                                orderNumber: orderNumber,
-                                orderDate: '25 Februari 2025',
-                                status: status,
-                                products: [
-                                  {
-                                    'name': 'Kaos',
-                                    'quantity': 3,
-                                    'unitPrice': 7000,
-                                    'totalPrice': 21000
-                                  },
-                                  {
-                                    'name': 'Kemeja',
-                                    'quantity': 3,
-                                    'unitPrice': 9000,
-                                    'totalPrice': 27000
-                                  },
-                                  {
-                                    'name': 'Celana',
-                                    'quantity': 3,
-                                    'unitPrice': 10000,
-                                    'totalPrice': 30000
-                                  },
-                                ],
-                                extraCost: 5000,
-                                totalCost: 220000,
-                              ),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'Selengkapnya',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 11, // Ditambahkan fontSize
-                          ),
-                        ),
+    );
+  }
+
+  Widget _buildTransactionList(List<Transaction> list) {
+    if (list.isEmpty) {
+      return const Center(child: Text('Tidak ada transaksi'));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 8),
+      itemCount: list.length,
+      itemBuilder: (_, i) => _buildTransactionCard(list[i]),
+    );
+  }
+
+  Widget _buildTransactionCard(Transaction t) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    t.namaToko.isNotEmpty ? t.namaToko[0].toUpperCase() : '?',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Color.fromARGB(156, 2, 103, 56),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.namaToko, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(t.kontakToko, style: TextStyle(fontSize: 14)),
+                    Text(formatDate(t.createdAt), style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(
+                      '${t.totalItems} item · ${formatCurrency(t.totalAmount)}',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      t.status,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: t.isCompleted ? Colors.green : Colors.orange,
                       ),
-              ],
-            ),
+                    ),
+                  ],
+                ),
+              ),
+              t.isCompleted
+                  ? ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(156, 2, 103, 56),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => OrderReviewPage(
+                              laundryName: t.namaToko,
+                              orderId: t.kodeTransaksi,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text('Beri Penilaian', style: TextStyle(fontSize: 11, color: Colors.white)),
+                    )
+                  : TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => OrderDetailPage(kodeTransaksi: t.kodeTransaksi),
+                          ),
+                        );
+                      },
+                      child: const Text('Selengkapnya', style: TextStyle(fontSize: 11)),
+                    ),
+            ],
           ),
         ),
       ),

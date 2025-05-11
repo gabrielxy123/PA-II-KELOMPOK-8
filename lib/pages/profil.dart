@@ -448,18 +448,22 @@ class _ProfilePageState extends State<ProfilePage> {
             final user = snapshot.data!;
             return Container(
               color: Color.fromARGB(255, 253, 253, 253),
-              child: ListView(
-                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                children: [
-                  _buildProfileCard(user),
-                  SizedBox(height: 16),
-                  _buildInfoCard(),
-                  SizedBox(height: 16),
-                  _buildMenuItems(context),
-                  SizedBox(height: 24),
-                  _buildRegisterStoreCard(), // This will now hide when status is 'Diterima'
-                  SizedBox(height: 24),
-                ],
+              child: RefreshIndicator(
+                color: Constants.primaryColor,
+                onRefresh: _refreshData,
+                child: ListView(
+                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  children: [
+                    _buildProfileCard(user),
+                    SizedBox(height: 16),
+                    _buildInfoCard(),
+                    SizedBox(height: 16),
+                    _buildMenuItems(context),
+                    SizedBox(height: 24),
+                    _buildRegisterStoreCard(),
+                    SizedBox(height: 24),
+                  ],
+                ),
               ),
             );
           } else {
@@ -468,6 +472,14 @@ class _ProfilePageState extends State<ProfilePage> {
         },
       ),
     );
+  }
+
+// Add this method to your _ProfilePageState class
+  Future<void> _refreshData() async {
+    setState(() {
+      userProfileFuture = _checkLoginAndFetchProfile();
+      _checkTokoStatus();
+    });
   }
 
   Widget _buildNotLoggedInState(BuildContext context) {
@@ -1084,7 +1096,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: Colors.grey[700],
                     ),
                   ),
-                  
                 ],
               ),
             ),
@@ -1141,8 +1152,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       final status = await _checkTokoStatus();
                       print('Status Toko: $status');
                       Navigator.of(context).pop();
-                        Navigator.pushNamed(context, "/register-toko");
-                      
+                      Navigator.pushNamed(context, "/register-toko");
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Constants.primaryColor,
@@ -1168,7 +1178,6 @@ class _ProfilePageState extends State<ProfilePage> {
       },
     );
   }
-
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
