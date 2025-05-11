@@ -194,7 +194,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     });
   }
 
-
   Future<void> _submitOrder() async {
     setState(() => _isLoading = true);
 
@@ -213,14 +212,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
       // Hitung total
       double total = 0;
-      
+
       // Hitung dari produk
       for (var produk in _produks) {
         if ((produk.quantity ?? 0) > 0) {
           total += (produk.harga ?? 0) * (produk.quantity ?? 0);
         }
       }
-      
+
       // Hitung dari layanan tambahan
       for (var service in _additionalServices) {
         if (service.isSelected) {
@@ -288,8 +287,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         setState(() => _isLoading = false);
       }
     }
-}
-  
+  }
+
   String _getServiceTypeForProduk(Produk produk) {
     try {
       final kategori = _kategories.firstWhere(
@@ -400,6 +399,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
                   // Additional Services
                   // Ganti bagian Additional Services di build method
+                  // Additional Services
                   if (_additionalServices.isNotEmpty) ...[
                     const Text(
                       'Layanan Tambahan',
@@ -429,34 +429,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ],
                         ),
                       ),
+                  ] else ...[
+                    const Text(
+                      'Layanan Tambahan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Tidak ada layanan tambahan tersedia.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey,
+                      ),
+                    ),
                   ],
-
-                  const Divider(thickness: 1),
-                  const SizedBox(height: 16),
-
-                  // Total
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Total',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Rp$_total',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF006A4E),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
                   // Notes
                   const Text(
                     'Catatan',
