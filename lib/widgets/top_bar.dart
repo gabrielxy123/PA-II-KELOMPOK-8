@@ -108,7 +108,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
                   if (!authProvider.isCheckingLogin) {
                     Navigator.pushNamed(context, "/login");
                   } else {
-                    Navigator.pushNamed(context, "/user-profil");
+                    Navigator.pushNamed(context, "/akun");
                   }
                 },
                 child: Row(
@@ -197,9 +197,9 @@ class _TopBarWidgetState extends State<TopBarWidget> {
                 icon: const Icon(Icons.notifications_outlined),
                 onPressed: () {
                   if (authProvider.isCheckingLogin) {
-                    Navigator.pushNamed(context, "/notifications");
+                    Navigator.pushNamed(context, "/notification");
                   } else {
-                    Navigator.pushNamed(context, "/not-logged");
+                    Navigator.pushNamed(context, "/login");
                   }
                 },
               ),
