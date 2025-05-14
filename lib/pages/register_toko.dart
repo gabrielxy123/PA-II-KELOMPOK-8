@@ -13,7 +13,7 @@ class _TokoState extends State<FormTokoPage> {
   TextEditingController nameController = TextEditingController();
   TextEditingController noTelpController = TextEditingController();
   TextEditingController emailController = TextEditingController();
-  TextEditingController deskripsiController = TextEditingController();
+  TextEditingController deskripsiController = TextEditingController() ;
 
   // Validation function for name
   String? _validateName(String value) {

@@ -199,7 +199,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
                   if (authProvider.isCheckingLogin) {
                     Navigator.pushNamed(context, "/notification");
                   } else {
-                    Navigator.pushNamed(context, "/login");
+                    Navigator.pushNamed(context, "/notification");
                   }
                 },
               ),

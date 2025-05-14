@@ -1,144 +1,56 @@
-import 'package:firebase_core/firebase_core.dart';
+import 'package:carilaundry2/core/apiConstant.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-@pragma('vm:entry-point')
-Future <void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await NotificationService.instance.setupFlutterNotifications();
-  await NotificationService.instance.showNotification(message);
-
-}
-
+import 'package:http/http.dart' as http;
 
 class NotificationService {
-  NotificationService._();
-  static final NotificationService instance = NotificationService._();
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
-  final _messaging = FirebaseMessaging.instance;
-  final _localNotifications = FlutterLocalNotificationsPlugin();
+  // Inisialisasi FCM
+  Future<void> initializeFcm(String userId) async {
+    try {
+      // Mendapatkan token FCM
+      String? token = await _firebaseMessaging.getToken();
+      if (token != null) {
+        print("FCM Token: $token");
 
-  bool _isFlutterLocalNotificationsInitialized = false;
+        // Simpan token ke backend
+        await saveTokenToBackend(userId, token);
 
-  Future<void> initialize() async {
-
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    //request permission
-    await _requestPermission();
-
-    //setup message handlers
-    await _setupMessageHandlers();
-
-    //Get FCM TOKEN
-    final token = await _messaging.getToken();
-    print('FCM TOKEN: $token');  
-  }
-
-  Future <void> _requestPermission() async {
-    final settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: true,
-      announcement: true, 
-      carPlay: true,
-      criticalAlert: true,
-    );
-
-    print('Permission Status: ${settings.authorizationStatus}');
-  }
-
-  Future <void> setupFlutterNotifications() async {
-    if (_isFlutterLocalNotificationsInitialized) {
-      return;
+        // Setup listener untuk token refresh
+        _firebaseMessaging.onTokenRefresh.listen((newToken) async {
+          print("FCM Token refreshed: $newToken");
+          await saveTokenToBackend(userId, newToken);
+        });
+      }
+    } catch (e) {
+      print("Error initializing FCM: $e");
     }
-    //android setup
-    const channel = AndroidNotificationChannel(
-      'high_importance_channel',
-      'High Importance Channel',
-      description: 'This channel is used for important notifications.',
-      importance: Importance.high,
-    );
-
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-            ?.createNotificationChannel(channel);
-
-    const initializationSettingsAndroid = 
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-
-
-    final initializationSettingsDarwin = DarwinInitializationSettings(
-      onDidReceiveLocalNotification: (id, title, body, payload) async {
-        //handle iOS foreground notification
-      }
-    );
-
-    final initializationSettings =  InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
-    );  
-
-    //flutter notification setup
-    await _localNotifications.initialize(
-      initializationSettings,
-      onDidReceiveBackgroundNotificationResponse: (details) {
-
-      }
-    );
-
-    _isFlutterLocalNotificationsInitialized = true;
   }
 
-  Future <void> showNotification(RemoteMessage message) async {
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
-    if (notification != null && android != null) {
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'high_importance_channel',
-            'High Importance Notifications',
-            channelDescription: 
-              'This channel is used for important notifications.',  
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-        payload: message.data.toString(),
+  // Simpan token ke backend
+  Future<void> saveTokenToBackend(String userId, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${Apiconstant.BASE_URL}/save-token'),
+        body: {
+          'id_user': userId,
+          'token': token,
+        },
       );
+
+      if (response.statusCode == 200) {
+        print('Token saved successfully');
+      } else {
+        print('Failed to save token: ${response.body}');
+      }
+    } catch (e) {
+      print('Error saving token: $e');
     }
   }
 
-  Future <void> _setupMessageHandlers() async {
-    //foreground message
-    FirebaseMessaging.onMessage.listen((message){
-      showNotification(message);
-    });
-
-    //background app
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleBackgroundMessage);
-
-    //opened app
-    final initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null){
-      _handleBackgroundMessage(initialMessage);
-    }
+  // Kirim notifikasi lokal (opsional, untuk debugging)
+  void showNotification(String title, String body) {
+    // Implementasi notifikasi lokal menggunakan plugin seperti flutter_local_notifications
+    print("Notification Received: $title - $body");
   }
-
-  void _handleBackgroundMessage(RemoteMessage message){
-    if (message.data['type'] == 'chat'){
-      
-    }
-  }
-} 
+}

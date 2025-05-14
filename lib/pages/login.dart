@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:carilaundry2/controller/AuthController.dart';
 import 'package:carilaundry2/core/apiConstant.dart';
 import 'package:carilaundry2/widgets/custom_field.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons_null_safety/flutter_icons_null_safety.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,6 +50,11 @@ class _LoginState extends State<Login> {
 
   // ---------- LOGIN FUNCTION ----------
   void _login(String name, String password) async {
+    String token = "";
+    await FirebaseMessaging.instance.getToken().then((value){
+      token = value!;
+    });
+    print('Token Fcm: $token');
     if (name.isEmpty) {
       _showErrorDialog("Nama harus diisi.");
       return;
@@ -65,7 +71,11 @@ class _LoginState extends State<Login> {
       final response = await http.post(
         Uri.parse('${Apiconstant.BASE_URL}/login'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'name': name, 'password': password}),
+        body: jsonEncode({
+          'name': name, 
+          'password': password, 
+          'fcm_token': token,
+          }),
       );
 
       Navigator.pop(context); // close loading
@@ -107,7 +117,8 @@ class _LoginState extends State<Login> {
           //   ),
           //   (route) => false, // This will remove all previous routes
           // );
-          Navigator.of(context) .pushNamedAndRemoveUntil("/dashboard", (route) => false);
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil("/dashboard", (route) => false);
         }
       } else {
         final responseData = jsonDecode(response.body);
@@ -116,7 +127,9 @@ class _LoginState extends State<Login> {
         _showErrorDialog(errorMessage);
       }
     } catch (e) {
-      Navigator.pop(context); // close loading on error
+      if (mounted) {
+        Navigator.pop(context); // close loading on error
+      }
       _showErrorDialog(
           "Terjadi kesalahan. Periksa koneksi Anda dan coba lagi.");
     }

@@ -165,7 +165,7 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
                     child: TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'Cari layanan...',
+                        hintText: 'Cari Toko...',
                         prefixIcon:
                             Icon(Icons.search, color: Colors.grey.shade600),
                         border: OutlineInputBorder(

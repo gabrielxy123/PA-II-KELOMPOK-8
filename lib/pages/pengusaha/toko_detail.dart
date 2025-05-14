@@ -328,7 +328,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
               TextField(
                 controller: hargaController,
                 decoration:
-                    InputDecoration(labelText: 'Harga Produk (Opsional)'),
+                    InputDecoration(labelText: 'Harga Produk (Satuan)'),
                 keyboardType: TextInputType.number,
               ),
             ],
@@ -663,7 +663,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildAddButton(onTap: _showAddServiceDialog),
+                  _buildAddButton(onTap: _showAddLayananDialog),
                   SizedBox(height: 16),
                   Text("Belum ada layanan tambahan laundry."),
                   Text("Klik tombol '+' untuk menambahkan."),

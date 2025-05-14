@@ -8,6 +8,7 @@ class AuthProvider with ChangeNotifier {
   String? _token;
   String? _username;
   String? _userProfileImage;
+  String? _userId; // Tambahkan properti userId
   bool _isDisposed = true;
   bool _isCheckingLogin = true;
 
@@ -28,6 +29,7 @@ class AuthProvider with ChangeNotifier {
   String? get token => _token;
   String? get username => _username;
   String? get userProfileImage => _userProfileImage;
+  String? get userId => _userId; // Getter untuk userId
 
   Future<void> checkLoginStatus() async {
     _isCheckingLogin = true;
@@ -37,6 +39,7 @@ class AuthProvider with ChangeNotifier {
     _token = prefs.getString('auth_token');
     _username = prefs.getString('name');
     _userProfileImage = prefs.getString('profile_image');
+    _userId = prefs.getString('id_user'); // Ambil userId dari SharedPreferences
 
     if (_token != null && (_username == null || _userProfileImage == null)) {
       // Jika token ada tapi data user belum tersedia, lakukan fetch
@@ -61,12 +64,15 @@ class AuthProvider with ChangeNotifier {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final token = data['token'];
+        final userId = data['id_user']; // Ambil userId dari respons API
 
-        // Simpan token di SharedPreferences
+        // Simpan token dan userId di SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', token);
+        await prefs.setInt('id_user', userId);
 
         _token = token;
+        _userId = userId; // Simpan userId di dalam provider
         await _fetchUserData(); // Ambil data user setelah login
         _safeNotifyListeners();
       } else {
@@ -86,14 +92,17 @@ class AuthProvider with ChangeNotifier {
     _token = null;
     _username = null;
     _userProfileImage = null;
+    _userId = null; // Reset userId
 
     print('Logout berhasil');
     _safeNotifyListeners();
   }
 
-  Future<void> saveUserId(int userId) async {
+  Future<void> saveUserId(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('user_id', userId);
+    await prefs.setString('id_user', userId);
+    _userId = userId; // Simpan userId di provider
+    _safeNotifyListeners();
   }
 
   Future<void> _fetchUserData() async {
@@ -113,27 +122,21 @@ class AuthProvider with ChangeNotifier {
 
         // Periksa jika data['name'] dan data['profile_image'] ada dan tidak null
         if (data['name'] != null && data['profile_image'] != null) {
-          _username = data['name'] ??
-              'Nama Tidak Tersedia'; // Berikan nilai default jika null
+          _username = data['name'] ?? 'Nama Tidak Tersedia';
           _userProfileImage = data['profile_image']?.isNotEmpty == true
-              ? data['profile_image'] // Jika profile_image tidak kosong
-              : 'assets/default_profile_image.png'; // Gambar default jika kosong
+              ? data['profile_image']
+              : 'assets/default_profile_image.png';
 
           // Simpan data user ke SharedPreferences
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(
-              'name', _username!); // Pastikan _username tidak null
-          await prefs.setString('profile_image',
-              _userProfileImage!); // Pastikan _userProfileImage tidak null
+          await prefs.setString('name', _username!);
+          await prefs.setString('profile_image', _userProfileImage!);
 
-          _safeNotifyListeners(); // Pastikan notifyListeners dipanggil setelah data berhasil diperbarui
+          _safeNotifyListeners();
         } else {
-          // Jika name atau profile_image null, beri nilai default
           _username = 'Nama Tidak Tersedia';
-          _userProfileImage =
-              'assets/default_profile_image.png'; // Gambar default
+          _userProfileImage = 'assets/default_profile_image.png';
 
-          // Simpan data user ke SharedPreferences
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('name', _username!);
           await prefs.setString('profile_image', _userProfileImage!);
