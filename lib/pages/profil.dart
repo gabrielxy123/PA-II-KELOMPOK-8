@@ -880,7 +880,7 @@ class _ProfilePageState extends State<ProfilePage> {
             icon: Icons.history,
             title: "Riwayat Transaksi",
             onTap: () {
-              Navigator.pushReplacementNamed(context, "/order-history");
+              Navigator.pushNamed(context, "/transaksi/request");
             },
           ),
           Divider(height: 1, color: Colors.grey.shade200),

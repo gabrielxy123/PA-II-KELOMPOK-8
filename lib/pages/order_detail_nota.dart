@@ -8,7 +8,8 @@ import 'package:carilaundry2/core/apiConstant.dart';
 class OrderDetailPage extends StatefulWidget {
   final String kodeTransaksi;
 
-  const OrderDetailPage({Key? key, required this.kodeTransaksi}) : super(key: key);
+  const OrderDetailPage({Key? key, required this.kodeTransaksi})
+      : super(key: key);
 
   @override
   _OrderDetailPageState createState() => _OrderDetailPageState();
@@ -69,8 +70,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   String formatCurrency(dynamic amount) {
-    return NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0)
-        .format(amount is int ? amount : double.tryParse(amount.toString())?.toInt() ?? 0);
+    return NumberFormat.currency(
+            locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0)
+        .format(amount is int
+            ? amount
+            : double.tryParse(amount.toString())?.toInt() ?? 0);
   }
 
   @override
@@ -88,16 +92,20 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       body: _isLoading
           ? const _LoadingView()
           : _error != null
-              ? _ErrorView(error: _error!, onRetry: () => _fetchOrderDetail(widget.kodeTransaksi))
+              ? _ErrorView(
+                  error: _error!,
+                  onRetry: () => _fetchOrderDetail(widget.kodeTransaksi))
               : _buildOrderDetail(),
     );
   }
 
   Widget _buildOrderDetail() {
     final order = _orderDetail!;
+    final status = order['status'];
     final toko = order['toko'];
     final items = order['items'];
     final layananTambahan = order['layanan_tambahan'];
+    final pesananKiloan = order['pesanan_kiloan'];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -108,7 +116,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -139,13 +148,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           ],
                         ),
                       ),
-                      _buildStatusBadge(order['status'] ?? 'Proses'),
+                      _buildStatusBadge(order['items'][0]['status']?.toString() ?? 'Ditolak'),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                      const Icon(Icons.access_time,
+                          size: 16, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(
                         order['waktu'],
@@ -162,7 +172,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -214,7 +225,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -238,7 +250,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     itemCount: items.length,
-                    separatorBuilder: (context, index) => const Divider(height: 16),
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 16),
                     itemBuilder: (context, index) {
                       final item = items[index];
                       return Row(
@@ -250,7 +263,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                               color: Colors.blue.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.local_laundry_service, color: Colors.blue, size: 20),
+                            child: const Icon(Icons.local_laundry_service,
+                                color: Colors.blue, size: 20),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -291,12 +305,119 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             ),
           ),
 
+// Pesanan Kiloan Card
+
+          if (pesananKiloan != null && pesananKiloan['details'] != null && pesananKiloan['details'].isNotEmpty)
+            Card(
+              elevation: 2,
+              margin: const EdgeInsets.only(bottom: 16),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.scale, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Text(
+                          'Pesanan Kiloan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+
+                    // Berat & Harga per kilo
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Jumlah Kiloan'),
+                        Text(
+                          pesananKiloan['jumlah_kiloan'] != null
+                              ? '${pesananKiloan['jumlah_kiloan']} Kg'
+                              : 'Belum ditentukan',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Harga per Kilo'),
+                        Text(
+                          pesananKiloan['harga_kiloan'] != null
+                              ? formatCurrency(pesananKiloan['harga_kiloan'])
+                              : 'Belum ditentukan',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Detail Barang',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    ListView.separated(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: pesananKiloan['details'].length,
+                      separatorBuilder: (_, __) => const Divider(height: 16),
+                      itemBuilder: (context, index) {
+                        final detail = pesananKiloan['details'][index];
+                        return Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.category,
+                                  color: Colors.purple),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                detail['nama_barang'] ?? 'Barang',
+                                style: const TextStyle(fontSize: 15),
+                              ),
+                            ),
+                            Text(
+                              'x${detail['quantity']}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // Layanan Tambahan Card
           if (layananTambahan.isNotEmpty)
             Card(
               elevation: 2,
               margin: const EdgeInsets.only(bottom: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -320,7 +441,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
                       itemCount: layananTambahan.length,
-                      separatorBuilder: (context, index) => const Divider(height: 16),
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 16),
                       itemBuilder: (context, index) {
                         final layanan = layananTambahan[index];
                         return Row(
@@ -331,7 +453,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                 color: Colors.green.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.add_circle, color: Colors.green, size: 20),
+                              child: const Icon(Icons.add_circle,
+                                  color: Colors.green, size: 20),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -361,7 +484,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             elevation: 2,
             color: Colors.blue.shade50,
             margin: const EdgeInsets.only(bottom: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -429,11 +553,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         color = Colors.green;
         icon = Icons.check_circle;
         break;
-      case 'proses':
+      case 'diproses':
         color = Colors.orange;
         icon = Icons.hourglass_empty;
         break;
-      case 'batal':
+      case 'ditolak':
         color = Colors.red;
         icon = Icons.cancel;
         break;
@@ -481,7 +605,8 @@ class _LoadingView extends StatelessWidget {
           (index) => Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Container(
               height: 120,
               padding: const EdgeInsets.all(16),
@@ -542,7 +667,8 @@ class _ErrorView extends StatelessWidget {
   final String error;
   final VoidCallback onRetry;
 
-  const _ErrorView({Key? key, required this.error, required this.onRetry}) : super(key: key);
+  const _ErrorView({Key? key, required this.error, required this.onRetry})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -575,7 +701,8 @@ class _ErrorView extends StatelessWidget {
               icon: const Icon(Icons.refresh),
               label: const Text('Coba Lagi'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],

@@ -1,3 +1,4 @@
+import 'package:carilaundry2/pages/pengusaha/customer_request_page.dart';
 import 'package:carilaundry2/pages/pengusaha/toko_detail.dart';
 import 'package:carilaundry2/pages/pengusaha/toko_profile.dart';
 import 'package:carilaundry2/pages/register.dart';
@@ -22,6 +23,7 @@ import 'package:carilaundry2/pages/admin/request_list.dart';
 // import 'package:carilaundry2/service/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'package:carilaundry2/AuthProvider/auth_provider.dart';
+import 'package:flutter_launcher_icons/custom_exceptions.dart';
 
 // Global key for app-wide SnackBars
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -141,12 +143,14 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
           return RequestListPage();
         },
       );
-    
+
     //Pengusaha
     case "/toko-saya":
       return MaterialPageRoute(builder: (context) => TokoDetailPage());
     case "/profile-toko-saya":
       return MaterialPageRoute(builder: (context) => TokoProfilePage());
+    case "/transaksi/request":
+      return MaterialPageRoute(builder: (context) => CustomerRequestPage());
     default:
       return MaterialPageRoute(
         builder: (BuildContext context) {

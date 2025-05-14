@@ -202,7 +202,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       final token = prefs.getString('auth_token') ?? '';
       final tokoId = prefs.getInt('id_toko') ?? 0;
 
-      // Validasi minimal
       if (_produks.every((produk) => (produk.quantity ?? 0) == 0)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Tidak ada produk yang dipilih')),
@@ -210,47 +209,42 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         return;
       }
 
-      // Hitung total
-      double total = 0;
+      // Pisahkan produk satuan & kiloan
+      final List<Map<String, dynamic>> itemSatuan = [];
+      final List<Map<String, dynamic>> detailKiloan = [];
 
-      // Hitung dari produk
       for (var produk in _produks) {
-        if ((produk.quantity ?? 0) > 0) {
-          total += (produk.harga ?? 0) * (produk.quantity ?? 0);
-        }
-      }
-
-      // Hitung dari layanan tambahan
-      for (var service in _additionalServices) {
-        if (service.isSelected) {
-          total += service.harga ?? 0;
+        final quantity = produk.quantity ?? 0;
+        if (quantity > 0) {
+          final serviceType = _getServiceTypeForProduk(produk);
+          if (serviceType == 'Satuan') {
+            itemSatuan.add({
+              'produk_id': produk.id,
+              'quantity': quantity,
+              'harga': produk.harga,
+            });
+          } else {
+            detailKiloan.add({
+              'id_produk': produk.id,
+              'nama_barang': produk.nama,
+              'quantity': quantity,
+            });
+          }
         }
       }
 
       final orderData = {
         'toko_id': tokoId,
-        'items': [
-          for (var produk in _produks)
-            if ((produk.quantity ?? 0) > 0)
-              {
-                'produk_id': produk.id,
-                'quantity': produk.quantity ?? 0,
-                'harga': produk.harga, // Pastikan harga dikirim
-              },
-        ],
-        'layanan_tambahan': [
-          for (var service in _additionalServices)
-            if (service.isSelected)
-              {
-                'layanan_id': service.id,
-                'harga': service.harga,
-              },
-        ],
-        'catatan': _notesController.text,
-        'total': total, // Kirim total yang sudah dihitung
+        'items': itemSatuan,
+        'pesanan_kiloan': detailKiloan.isNotEmpty
+            ? {
+                'jumlah_kiloan': null,
+                'harga_kiloan': null,
+                'details': detailKiloan,
+              }
+            : null,
       };
 
-      // Debug: Print data yang akan dikirim
       print('Order Data to Send: ${json.encode(orderData)}');
 
       final response = await http.post(
