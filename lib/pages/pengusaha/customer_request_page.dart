@@ -13,7 +13,8 @@ class CustomerRequestPage extends StatefulWidget {
   _CustomerRequestPageState createState() => _CustomerRequestPageState();
 }
 
-class _CustomerRequestPageState extends State<CustomerRequestPage> with SingleTickerProviderStateMixin {
+class _CustomerRequestPageState extends State<CustomerRequestPage>
+    with SingleTickerProviderStateMixin {
   List<dynamic> _requests = [];
   Map<String, List<dynamic>> _categorizedRequests = {
     'Semua': [],
@@ -22,11 +23,11 @@ class _CustomerRequestPageState extends State<CustomerRequestPage> with SingleTi
     'Selesai': [],
     'Ditolak': [],
   };
-  
+
   bool _isLoading = true;
   String? _error;
   TabController? _tabController;
-  
+
   final List<String> _tabs = [
     'Semua',
     'Menunggu',
@@ -41,26 +42,26 @@ class _CustomerRequestPageState extends State<CustomerRequestPage> with SingleTi
     _tabController = TabController(length: _tabs.length, vsync: this);
     fetchCustomerRequests();
   }
-  
+
   @override
   void dispose() {
     _tabController?.dispose();
     super.dispose();
   }
-  
+
   void _categorizeRequests() {
     // Clear previous categorized data
     for (var key in _categorizedRequests.keys) {
       _categorizedRequests[key] = [];
     }
-    
+
     // Add all requests to "Semua" category
     _categorizedRequests['Semua'] = List.from(_requests);
-    
+
     // Categorize requests by status
     for (var request in _requests) {
       final status = (request['status'] ?? '').toLowerCase();
-      
+
       if (status.contains('menunggu')) {
         _categorizedRequests['Menunggu']!.add(request);
       } else if (status.contains('proses')) {
@@ -82,32 +83,50 @@ class _CustomerRequestPageState extends State<CustomerRequestPage> with SingleTi
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
-      
+
       if (token == null) {
-        throw Exception('Token tidak ditemukan. Silakan login kembali.');
+        setState(() {
+          _isLoading = false;
+          _error = 'Token tidak ditemukan. Silakan login kembali.';
+        });
+        return;
       }
-      
+
       final response = await http.get(
-        Uri.parse('${Apiconstant.BASE_URL}/pengusaha/transaksi'), 
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        }
-      );
+          Uri.parse('${Apiconstant.BASE_URL}/pengusaha/transaksi'),
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          });
+
+      final responseBody = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _requests = data['data'];
-          _categorizeRequests();
-          _isLoading = false;
-        });
+        // Cek jika data kosong atau tidak ada
+        if (responseBody['data'] == null || responseBody['data'].isEmpty) {
+          setState(() {
+            _requests = [];
+            _isLoading = false;
+            _error = 'Tidak ada pesanan yang ditemukan.';
+          });
+        } else {
+          setState(() {
+            _requests = responseBody['data'];
+            _categorizeRequests();
+            _isLoading = false;
+          });
+        }
       } else {
-        throw Exception('Gagal memuat data: ${response.statusCode}');
+        // Handle error response dari server
+        final errorMessage = responseBody['message'] ??
+            'Gagal memuat data: ${response.statusCode}';
+        setState(() {
+          _isLoading = false;
+          _error = errorMessage;
+        });
       }
     } catch (e) {
       setState(() {
-        _error = e.toString();
         _isLoading = false;
       });
     }
@@ -119,7 +138,7 @@ class _CustomerRequestPageState extends State<CustomerRequestPage> with SingleTi
       symbol: 'Rp ',
       decimalDigits: 0,
     );
-    
+
     if (number is String) {
       return formatter.format(int.tryParse(number) ?? 0);
     } else if (number is int) {
@@ -154,7 +173,8 @@ class _CustomerRequestPageState extends State<CustomerRequestPage> with SingleTi
                   const SizedBox(width: 4),
                   if (!_isLoading && count > 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Theme.of(context).primaryColor,
                         borderRadius: BorderRadius.circular(10),
@@ -189,8 +209,8 @@ class _CustomerRequestPageState extends State<CustomerRequestPage> with SingleTi
             child: _error != null
                 ? _ErrorView(error: _error!, onRetry: fetchCustomerRequests)
                 : _categorizedRequests[tab]!.isEmpty
-                    ? _isLoading 
-                        ? const _LoadingView() 
+                    ? _isLoading
+                        ? const _LoadingView()
                         : _EmptyView(currentTab: tab)
                     : _RequestListView(
                         requests: _categorizedRequests[tab]!,
@@ -221,7 +241,7 @@ class _RequestListView extends StatelessWidget {
     if (isLoading) {
       return const _LoadingView();
     }
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: requests.length,
@@ -280,7 +300,7 @@ class _RequestListView extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Customer info
           Padding(
             padding: const EdgeInsets.all(16),
@@ -304,11 +324,12 @@ class _RequestListView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Date
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+                    const Icon(Icons.calendar_today,
+                        size: 18, color: Colors.grey),
                     const SizedBox(width: 8),
                     Text(
                       request['tanggal'] ?? 'Tanggal tidak tersedia',
@@ -317,11 +338,12 @@ class _RequestListView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Items count
                 Row(
                   children: [
-                    const Icon(Icons.local_laundry_service, size: 18, color: Colors.grey),
+                    const Icon(Icons.local_laundry_service,
+                        size: 18, color: Colors.grey),
                     const SizedBox(width: 8),
                     Text(
                       '${request['jumlah_item'] ?? 0} item',
@@ -330,7 +352,7 @@ class _RequestListView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Total price
                 Row(
                   children: [
@@ -346,9 +368,9 @@ class _RequestListView extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const Divider(height: 24),
-                
+
                 // Action buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -372,7 +394,6 @@ class _RequestListView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    
                   ],
                 ),
               ],
@@ -415,7 +436,7 @@ class _RequestListView extends StatelessWidget {
 
   Map<String, dynamic> _getStatusInfo(String status) {
     final statusLower = status.toLowerCase();
-    
+
     if (statusLower.contains('selesai')) {
       return {
         'label': 'Selesai',
@@ -464,7 +485,8 @@ class _LoadingView extends StatelessWidget {
             children: [
               // Shimmer header
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade200,
                   borderRadius: const BorderRadius.only(
@@ -494,7 +516,7 @@ class _LoadingView extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               // Shimmer content
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -530,7 +552,7 @@ class _LoadingView extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               // Shimmer action button
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -560,7 +582,8 @@ class _ErrorView extends StatelessWidget {
   final String error;
   final VoidCallback onRetry;
 
-  const _ErrorView({Key? key, required this.error, required this.onRetry}) : super(key: key);
+  const _ErrorView({Key? key, required this.error, required this.onRetry})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +616,8 @@ class _ErrorView extends StatelessWidget {
               icon: const Icon(Icons.refresh),
               label: const Text('Coba Lagi'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],
@@ -605,9 +629,9 @@ class _ErrorView extends StatelessWidget {
 
 class _EmptyView extends StatelessWidget {
   final String currentTab;
-  
+
   const _EmptyView({Key? key, required this.currentTab}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -628,7 +652,7 @@ class _EmptyView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            currentTab == 'Semua' 
+            currentTab == 'Semua'
                 ? 'Belum ada permintaan pelanggan saat ini'
                 : 'Belum ada permintaan dengan status "$currentTab"',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(

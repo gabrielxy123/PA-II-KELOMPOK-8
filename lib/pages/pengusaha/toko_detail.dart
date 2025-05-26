@@ -163,6 +163,489 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     }
   }
 
+  Future<void> _deleteProduct(String productId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await http.delete(
+        Uri.parse('${Apiconstant.BASE_URL}/delete-produk/$productId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        await _loadStoreData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Produk berhasil dihapus!')),
+          );
+        }
+      } else {
+        final responseBody = json.decode(response.body);
+        throw Exception(
+            'Gagal menghapus produk. Status: ${response.statusCode}, Pesan: ${responseBody['message'] ?? response.reasonPhrase}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menghapus produk: $e')),
+        );
+      }
+    }
+  }
+
+  // NEW: Delete Service Function
+  Future<void> _deleteLayanan(String layananId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await http.delete(
+        Uri.parse('${Apiconstant.BASE_URL}/delete-layanan/$layananId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        await _loadStoreData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Layanan berhasil dihapus!')),
+          );
+        }
+      } else {
+        final responseBody = json.decode(response.body);
+        throw Exception(
+            'Gagal menghapus layanan. Status: ${response.statusCode}, Pesan: ${responseBody['message'] ?? response.reasonPhrase}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menghapus layanan: $e')),
+        );
+      }
+    }
+  }
+
+  // NEW: Edit Product Function
+  Future<void> _editProduct(
+      String productId, String categoryId, String nama, double? harga) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await http.put(
+        Uri.parse('${Apiconstant.BASE_URL}/edit-produk/$productId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'nama': nama,
+          'harga': harga,
+          'id_kategori': categoryId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        await _loadStoreData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Produk berhasil diperbarui!')),
+          );
+        }
+      } else {
+        final responseBody = json.decode(response.body);
+        throw Exception(
+            'Gagal memperbarui produk. Status: ${response.statusCode}, Pesan: ${responseBody['message'] ?? response.reasonPhrase}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memperbarui produk: $e')),
+        );
+      }
+    }
+  }
+
+  // NEW: Edit Service Function
+  Future<void> _editLayanan(String layananId, String nama, String harga) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await http.put(
+        Uri.parse('${Apiconstant.BASE_URL}/edit-layanan/$layananId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'nama': nama,
+          'harga': harga,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        await _loadStoreData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Layanan berhasil diperbarui!')),
+          );
+        }
+      } else {
+        final responseBody = json.decode(response.body);
+        throw Exception(
+            'Gagal memperbarui layanan. Status: ${response.statusCode}, Pesan: ${responseBody['message'] ?? response.reasonPhrase}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memperbarui layanan: $e')),
+        );
+      }
+    }
+  }
+
+  // NEW: Show Edit Product Dialog
+  Future<void> _showEditProductDialog(Produk produk) async {
+    final categories = await _fetchCategories();
+
+    // Debug: Print category data and product category
+    print('Available categories: $categories');
+    print('Product category ID: ${produk.id}');
+
+    // Ensure we have a valid selectedCategory
+    String? selectedCategory;
+
+    // Find matching category ID, handle both string and int types
+    if (produk.id != null) {
+      final productCategoryId = produk.id.toString();
+
+      // Check if the product's category exists in available categories
+      final categoryExists = categories
+          .any((category) => category['id'].toString() == productCategoryId);
+
+      if (categoryExists) {
+        selectedCategory = productCategoryId;
+      } else {
+        // If product's category doesn't exist, set to null (will show placeholder)
+        selectedCategory = null;
+        print(
+            'Warning: Product category ID $productCategoryId not found in available categories');
+      }
+    }
+
+    final namaController = TextEditingController(text: produk.nama);
+    final hargaController =
+        TextEditingController(text: produk.harga.toString());
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text('Edit Produk'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Pilih Kategori',
+                    border: OutlineInputBorder(),
+                  ),
+                  value: selectedCategory,
+                  hint: Text('Pilih kategori produk'),
+                  isExpanded: true,
+                  items: categories.map<DropdownMenuItem<String>>((category) {
+                    final categoryId = category['id'].toString();
+                    final categoryName = category['kategori']?.toString() ??
+                        'Kategori tidak diketahui';
+
+                    return DropdownMenuItem<String>(
+                      value: categoryId,
+                      child: Text(
+                        categoryName,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? value) {
+                    setState(() {
+                      selectedCategory = value;
+                    });
+                  },
+                  validator: (value) =>
+                      value == null ? 'Kategori harus dipilih' : null,
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: namaController,
+                  decoration: InputDecoration(
+                    labelText: 'Nama Produk',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: hargaController,
+                  decoration: InputDecoration(
+                    labelText: 'Harga Produk (Satuan)',
+                    border: OutlineInputBorder(),
+                    prefixText: 'Rp ',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // Validation
+                if (selectedCategory == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Harap pilih kategori')),
+                  );
+                  return;
+                }
+
+                if (namaController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Harap isi nama produk')),
+                  );
+                  return;
+                }
+
+                double? harga;
+                if (hargaController.text.trim().isNotEmpty) {
+                  harga = double.tryParse(hargaController.text.trim());
+                  if (harga == null || harga < 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('Harga harus berupa angka yang valid')),
+                    );
+                    return;
+                  }
+                }
+
+                // Show loading
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+
+                try {
+                  await _editProduct(
+                    produk.id.toString(),
+                    selectedCategory!,
+                    namaController.text.trim(),
+                    harga,
+                  );
+
+                  // Close loading dialog
+                  Navigator.pop(context);
+                  // Close edit dialog
+                  Navigator.pop(context);
+                } catch (e) {
+                  // Close loading dialog
+                  Navigator.pop(context);
+                  // Show error
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gagal memperbarui produk: $e')),
+                  );
+                }
+              },
+              child: Text('Simpan'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // NEW: Show Edit Service Dialog
+  Future<void> _showEditLayananDialog(Layanan layanan) async {
+    final namaLayananController = TextEditingController(text: layanan.nama);
+    final hargaLayananController =
+        TextEditingController(text: layanan.harga.toString());
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit Layanan'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: namaLayananController,
+                decoration: InputDecoration(labelText: 'Nama Layanan'),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: hargaLayananController,
+                decoration: InputDecoration(labelText: 'Harga Layanan'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (namaLayananController.text.isEmpty ||
+                  hargaLayananController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Harap isi semua field')),
+                );
+                return;
+              }
+
+              if (double.tryParse(hargaLayananController.text) == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Harga harus berupa angka')),
+                );
+                return;
+              }
+
+              await _editLayanan(
+                layanan.id.toString(),
+                namaLayananController.text,
+                hargaLayananController.text,
+              );
+
+              if (mounted) {
+                Navigator.pop(context);
+              }
+            },
+            child: Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // NEW: Show Action Menu for Product
+  void _showProductActionMenu(Produk produk) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.edit, color: Colors.blue),
+                title: Text('Edit Produk'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showEditProductDialog(produk);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text('Hapus Produk'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteConfirmation(
+                    title: 'Hapus Produk',
+                    content:
+                        'Apakah Anda yakin ingin menghapus produk "${produk.nama}"?',
+                    onConfirm: () => _deleteProduct(produk.id.toString()),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // NEW: Show Action Menu for Service
+  void _showLayananActionMenu(Layanan layanan) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.edit, color: Colors.blue),
+                title: Text('Edit Layanan'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showEditLayananDialog(layanan);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text('Hapus Layanan'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteConfirmation(
+                    title: 'Hapus Layanan',
+                    content:
+                        'Apakah Anda yakin ingin menghapus layanan "${layanan.nama}"?',
+                    onConfirm: () => _deleteLayanan(layanan.id.toString()),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // NEW: Show Delete Confirmation Dialog
+  void _showDeleteConfirmation({
+    required String title,
+    required String content,
+    required VoidCallback onConfirm,
+  }) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                onConfirm();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<List<Map<String, dynamic>>> _fetchCategories() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
@@ -327,8 +810,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
               SizedBox(height: 16),
               TextField(
                 controller: hargaController,
-                decoration:
-                    InputDecoration(labelText: 'Harga Produk (Satuan)'),
+                decoration: InputDecoration(labelText: 'Harga Produk (Satuan)'),
                 keyboardType: TextInputType.number,
               ),
             ],
@@ -482,12 +964,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
           IconButton(
             icon: Icon(Icons.refresh, size: 20), // Added refresh button
             onPressed: _isLoading ? null : _loadStoreData,
-          ),
-          IconButton(
-            icon: Icon(Icons.settings, size: 20),
-            onPressed: () {
-              // Aksi untuk pengaturan toko
-            },
           ),
         ],
       ),
@@ -751,9 +1227,11 @@ class _TokoDetailPageState extends State<TokoDetailPage>
   Widget _buildProdukItem(Produk produk, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: () =>
+          _showProductActionMenu(produk), // NEW: Long press for actions
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5), // A light grey background
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -763,69 +1241,88 @@ class _TokoDetailPageState extends State<TokoDetailPage>
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch, // Make children stretch
+        child: Stack(
+          // NEW: Added Stack for action button
           children: [
-            Expanded(
-              // To make the image/icon take available space
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: (produk.logoUrl != null && produk.logoUrl!.isNotEmpty)
-                    ? Image.network(
-                        produk.logoUrl!,
-                        fit: BoxFit
-                            .contain, // Use contain to see the whole image
-                        loadingBuilder: (BuildContext context, Widget child,
-                            ImageChunkEvent? loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.0,
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      (loadingProgress.expectedTotalBytes ?? 1)
-                                  : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          // Fallback icon if image fails to load
-                          return Icon(Icons.broken_image_outlined,
-                              size: 40, color: Colors.grey[600]);
-                        },
-                      )
-                    // Default icon if no logoUrl
-                    : Icon(Icons.inventory_2_outlined,
-                        size: 40, color: Colors.grey[600]),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: (produk.logoUrl != null &&
+                            produk.logoUrl!.isNotEmpty)
+                        ? Image.network(
+                            produk.logoUrl!,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.0,
+                                  value: loadingProgress.expectedTotalBytes !=
+                                          null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          (loadingProgress.expectedTotalBytes ??
+                                              1)
+                                      : null,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.broken_image_outlined,
+                                  size: 40, color: Colors.grey[600]);
+                            },
+                          )
+                        : Icon(Icons.inventory_2_outlined,
+                            size: 40, color: Colors.grey[600]),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                  child: Text(
+                    produk.nama,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0, bottom: 6.0),
+                  child: Text(
+                    'Rp ${NumberFormat('#,###', 'id_ID').format(produk.harga)}',
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: const Color(0xFF006A55),
+                        fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+            // NEW: Action button in top right corner
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () => _showProductActionMenu(produk),
+                child: Container(
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.more_vert,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
               ),
             ),
-            // SizedBox(height: 4), // Reduced space
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6.0),
-              child: Text(
-                produk.nama,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: 2.0, bottom: 6.0), // Adjusted padding
-              child: Text(
-                // Format harga with thousands separator
-                'Rp ${NumberFormat('#,###', 'id_ID').format(produk.harga)}',
-                style: TextStyle(
-                    fontSize: 11,
-                    color: const Color(0xFF006A55), // Theme color for price
-                    fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            // SizedBox(height: 4), // Reduced space
           ],
         ),
       ),
@@ -835,9 +1332,11 @@ class _TokoDetailPageState extends State<TokoDetailPage>
   Widget _buildLayananItem(Layanan layanan, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: () =>
+          _showLayananActionMenu(layanan), // NEW: Long press for actions
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5), // A light grey background
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -847,69 +1346,88 @@ class _TokoDetailPageState extends State<TokoDetailPage>
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch, // Make children stretch
+        child: Stack(
+          // NEW: Added Stack for action button
           children: [
-            Expanded(
-              // To make the image/icon take available space
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: (layanan.logoUrl != null && layanan.logoUrl!.isNotEmpty)
-                    ? Image.network(
-                        layanan.logoUrl!,
-                        fit: BoxFit
-                            .contain, // Use contain to see the whole image
-                        loadingBuilder: (BuildContext context, Widget child,
-                            ImageChunkEvent? loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.0,
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      (loadingProgress.expectedTotalBytes ?? 1)
-                                  : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          // Fallback icon if image fails to load
-                          return Icon(Icons.broken_image_outlined,
-                              size: 40, color: Colors.grey[600]);
-                        },
-                      )
-                    // Default icon if no logoUrl
-                    : Icon(Icons.inventory_2_outlined,
-                        size: 40, color: Colors.grey[600]),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: (layanan.logoUrl != null &&
+                            layanan.logoUrl!.isNotEmpty)
+                        ? Image.network(
+                            layanan.logoUrl!,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.0,
+                                  value: loadingProgress.expectedTotalBytes !=
+                                          null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          (loadingProgress.expectedTotalBytes ??
+                                              1)
+                                      : null,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.broken_image_outlined,
+                                  size: 40, color: Colors.grey[600]);
+                            },
+                          )
+                        : Icon(Icons.inventory_2_outlined,
+                            size: 40, color: Colors.grey[600]),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                  child: Text(
+                    layanan.nama,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0, bottom: 6.0),
+                  child: Text(
+                    'Rp ${NumberFormat('#,###', 'id_ID').format(layanan.harga)}',
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: const Color(0xFF006A55),
+                        fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+            // NEW: Action button in top right corner
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () => _showLayananActionMenu(layanan),
+                child: Container(
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.more_vert,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
               ),
             ),
-            // SizedBox(height: 4), // Reduced space
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6.0),
-              child: Text(
-                layanan.nama,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: 2.0, bottom: 6.0), // Adjusted padding
-              child: Text(
-                // Format harga with thousands separator
-                'Rp ${NumberFormat('#,###', 'id_ID').format(layanan.harga)}',
-                style: TextStyle(
-                    fontSize: 11,
-                    color: const Color(0xFF006A55), // Theme color for price
-                    fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            // SizedBox(height: 4), // Reduced space
           ],
         ),
       ),
