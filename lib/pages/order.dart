@@ -14,7 +14,7 @@ class Transaction {
   final int jumlahItem;
   final int totalHarga;
   final String status;
-  
+
   // Keep these fields with default values for backward compatibility
   final String kontakToko;
   final int idToko;
@@ -102,8 +102,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
 
       if (token == null) {
         setState(() {
-          _error =
-              'Silakan login untuk melihat riwayat transaksi.';
+          _error = 'Silakan login untuk melihat riwayat transaksi.';
           _isLoading = false;
           _isRefreshing = false;
         });
@@ -120,26 +119,26 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        
-        // Check if the response has the new format with "data" field
-        if (responseData is Map<String, dynamic> && responseData.containsKey('data')) {
+
+        List<Transaction> transactions = [];
+        if (responseData is Map<String, dynamic> &&
+            responseData.containsKey('data')) {
           final data = responseData['data'] as List<dynamic>;
-          final transactions = data.map((e) => Transaction.fromJson(e)).toList();
-          setState(() {
-            _transactions = transactions;
-            _isLoading = false;
-            _isRefreshing = false;
-          });
-        } else {
-          // Handle old format
-          final data = responseData as List<dynamic>;
-          final transactions = data.map((e) => Transaction.fromJson(e)).toList();
-          setState(() {
-            _transactions = transactions;
-            _isLoading = false;
-            _isRefreshing = false;
-          });
+          transactions = data.map((e) => Transaction.fromJson(e)).toList();
+        } else if (responseData is List<dynamic>) {
+          transactions =
+              responseData.map((e) => Transaction.fromJson(e)).toList();
         }
+
+        setState(() {
+          _transactions = transactions;
+          _isLoading = false;
+          _isRefreshing = false;
+
+          if (transactions.isEmpty) {
+            _error = 'Tidak ada transaksi yang ditemukan.';
+          }
+        });
       } else {
         throw Exception('Gagal memuat data: ${response.statusCode}');
       }
@@ -235,8 +234,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                       Text(_error!, style: TextStyle(color: Colors.red)),
                       SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _fetchTransactions,
-                        child: Text('Coba Lagi'),
+                        onPressed: () {
+                          Navigator.pushNamed(context, "/login");
+                        },
+                        child: Text('Login'),
                       ),
                     ],
                   ),

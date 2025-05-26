@@ -41,7 +41,7 @@ class _DashboardState extends State<Dashboard> {
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted && _pageController.hasClients) {
         setState(() {
-          _currentBannerIndex = (_currentBannerIndex + 1) % 4;
+          _currentBannerIndex = (_currentBannerIndex + 1) % 4; 
         });
         _pageController.animateToPage(
           _currentBannerIndex,

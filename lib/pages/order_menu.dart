@@ -260,14 +260,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       print('Response from Server: $responseData');
 
       if (response.statusCode == 201) {
-        if (mounted) {
+        if (mounted) {  
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Pesanan berhasil dibuat')),
           );
           Navigator.of(context).pop(true);
         }
       } else {
-        throw Exception('Gagal membuat pesanan: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Silahkan login terlebih dahulu')));
       }
     } catch (e) {
       print('Error submitting order: $e');

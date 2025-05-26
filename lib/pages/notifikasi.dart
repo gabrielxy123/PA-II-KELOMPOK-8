@@ -1,6 +1,9 @@
+import 'package:carilaundry2/main.dart';
+import 'package:carilaundry2/pages/order.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/notifikasi.dart';
+import 'package:get/get.dart';
 import '../service/notification.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -69,7 +72,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
     try {
       await _notificationService.deleteNotification(notificationId);
       setState(() {
-        _notifications.removeWhere((notification) => notification.id == notificationId);
+        _notifications
+            .removeWhere((notification) => notification.id == notificationId);
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Notification deleted')),
@@ -126,19 +130,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notifications'),
         backgroundColor: const Color(0xFF006A55),
+        title: Text('Notifications', style: TextStyle(color: Colors.white)),
         actions: [
           if (_notifications.any((notification) => !notification.isRead))
             IconButton(
               icon: Icon(Icons.done_all),
               onPressed: _markAllAsRead,
               tooltip: 'Mark all as read',
+              color: Colors.white,
             ),
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _loadNotifications,
             tooltip: 'Refresh',
+            color: Colors.white,
           ),
         ],
       ),
@@ -216,14 +222,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                   builder: (BuildContext context) {
                                     return AlertDialog(
                                       title: Text("Confirm"),
-                                      content: Text("Are you sure you want to delete this notification?"),
+                                      content: Text(
+                                          "Are you sure you want to delete this notification?"),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.of(context).pop(false),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(false),
                                           child: Text("Cancel"),
                                         ),
                                         TextButton(
-                                          onPressed: () => Navigator.of(context).pop(true),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(true),
                                           child: Text("Delete"),
                                         ),
                                       ],
@@ -241,9 +250,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               }
                             },
                             child: Card(
-                              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               elevation: notification.isRead ? 1 : 3,
-                              color: notification.isRead ? null : Colors.grey[50],
+                              color:
+                                  notification.isRead ? null : Colors.grey[50],
                               child: ListTile(
                                 contentPadding: EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -253,7 +264,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF006A55).withOpacity(0.1),
+                                    color: const Color(0xFF006A55)
+                                        .withOpacity(0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -306,13 +318,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                     if (data.containsKey('event_type')) {
                                       String eventType = data['event_type'];
                                       switch (eventType) {
-                                        case 'new_store_registration':
-                                          // Navigate to store details
-                                          if (data.containsKey('store_id')) {
-                                            // Navigator.push(...);
-                                          }
+                                        case 'order_processed':
+                                          Get.toNamed(AppRoutes.orderHistory);
                                           break;
                                         // Add other event types as needed
+                                        case 'order_rejected':
+                                          Get.toNamed(AppRoutes.orderHistory);
+                                          break;
                                       }
                                     }
                                   }
