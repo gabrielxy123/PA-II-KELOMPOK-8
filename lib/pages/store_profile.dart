@@ -1,8 +1,8 @@
 import 'package:carilaundry2/core/apiConstant.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert'; // Untuk decode JSON
+import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart'; // Untuk request HTTP
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TokoProfileUserPage extends StatefulWidget {
   @override
@@ -25,6 +25,16 @@ class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  // Review related variables
+  List<dynamic> _reviews = [];
+  bool _isLoadingReviews = false;
+  String? _reviewsErrorMessage;
+  Map<String, dynamic>? _reviewStats;
+  int _currentPage = 1;
+  bool _hasMoreReviews = true;
+  int? _selectedRatingFilter;
+  int? _tokoId;
+
   @override
   void initState() {
     super.initState();
@@ -34,8 +44,9 @@ class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
   Future<void> fetchStoreData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      // final token = prefs.getString('auth_token') ?? '';
       final tokoId = prefs.getInt('id_toko') ?? 0;
+      _tokoId = tokoId;
+
       final response = await http.get(
         Uri.parse('${Apiconstant.BASE_URL}/detail-toko-user/$tokoId'),
       );
@@ -48,8 +59,10 @@ class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
             _storeDescription =
                 data['data']['deskripsi'] ?? 'Deskripsi tidak tersedia';
             _storeAddress = data['data']['jalan'] ?? 'Alamat tidak tersedia';
-            _kecamatan = data['data']['kecamatan'] ?? 'Kecamatan tidak disertakan';
-            _kabupaten = data['data']['kabupaten'] ?? 'Kabupaten tidak disertakan';
+            _kecamatan =
+                data['data']['kecamatan'] ?? 'Kecamatan tidak disertakan';
+            _kabupaten =
+                data['data']['kabupaten'] ?? 'Kabupaten tidak disertakan';
             _storeOperationDays =
                 data['data']['waktuBuka'] ?? 'Waktu buka tidak tersedia';
             _storeOperationHours =
@@ -62,6 +75,11 @@ class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
             _storeLogo = data['data']['logo'];
             _isLoading = false;
           });
+
+          // Fetch reviews after store data is loaded
+          if (_tokoId != null && _tokoId! > 0) {
+            fetchReviews();
+          }
         } else {
           setState(() {
             _errorMessage = data['message'];
@@ -77,6 +95,85 @@ class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> fetchReviews({bool loadMore = false}) async {
+    if (_tokoId == null || _tokoId! <= 0) return;
+
+    if (!loadMore) {
+      setState(() {
+        _isLoadingReviews = true;
+        _reviewsErrorMessage = null;
+        _currentPage = 1;
+        _reviews.clear();
+      });
+    }
+
+    try {
+      String url =
+          '${Apiconstant.BASE_URL}/toko/$_tokoId/ulasan?page=$_currentPage&per_page=5';
+
+      if (_selectedRatingFilter != null) {
+        url += '&rating=$_selectedRatingFilter';
+      }
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Accept': 'application/json',
+        },
+      );
+
+      print('Reviews URL: $url');
+      print('Reviews Response Status: ${response.statusCode}');
+      print('Reviews Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final reviewsData = data['data']['reviews'];
+          final stats = data['data']['stats'];
+
+          setState(() {
+            if (loadMore) {
+              _reviews.addAll(reviewsData['data']);
+            } else {
+              _reviews = reviewsData['data'];
+            }
+            _reviewStats = stats;
+            _hasMoreReviews = reviewsData['next_page_url'] != null;
+            _isLoadingReviews = false;
+          });
+        } else {
+          setState(() {
+            _reviewsErrorMessage = data['message'] ?? 'Gagal memuat ulasan';
+            _isLoadingReviews = false;
+          });
+        }
+      } else {
+        throw Exception('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _reviewsErrorMessage = 'Gagal mengambil ulasan: $e';
+        _isLoadingReviews = false;
+      });
+      print('Error fetching reviews: $e');
+    }
+  }
+
+  void _loadMoreReviews() {
+    if (_hasMoreReviews && !_isLoadingReviews) {
+      _currentPage++;
+      fetchReviews(loadMore: true);
+    }
+  }
+
+  void _filterByRating(int? rating) {
+    setState(() {
+      _selectedRatingFilter = rating;
+    });
+    fetchReviews();
   }
 
   @override
@@ -105,6 +202,7 @@ class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      // Store Info Section
                       Container(
                         padding: const EdgeInsets.all(16.0),
                         decoration: BoxDecoration(
@@ -151,13 +249,21 @@ class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
                               children: [
                                 _buildInfoCard(
                                   title: "Rating Toko",
-                                  value: _storeRating ?? 'N/A',
+                                  value: _reviewStats != null
+                                      ? (_reviewStats!['average_rating']
+                                              ?.toString() ??
+                                          'N/A')
+                                      : (_storeRating ?? 'N/A'),
                                   icon: Icons.star,
                                 ),
                                 _buildInfoCard(
-                                  title: "Jumlah Pesanan",
-                                  value: _storeOrders ?? 'N/A',
-                                  icon: Icons.list,
+                                  title: "Total Ulasan",
+                                  value: _reviewStats != null
+                                      ? (_reviewStats!['total_reviews']
+                                              ?.toString() ??
+                                          '0')
+                                      : '0',
+                                  icon: Icons.rate_review,
                                 ),
                               ],
                             ),
@@ -178,9 +284,307 @@ class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
                           ],
                         ),
                       ),
+
+                      const SizedBox(height: 24),
+
+                      // Reviews Section
+                      _buildReviewsSection(),
                     ],
                   ),
                 ),
+    );
+  }
+
+  Widget _buildReviewsSection() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 5,
+          ),
+        ],
+        border: Border.all(
+          color: const Color.fromARGB(255, 0, 0, 0),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Reviews Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Color(0xFF006A55),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.rate_review, color: Colors.white),
+                const SizedBox(width: 8),
+                const Text(
+                  'Ulasan Pelanggan',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                if (_reviewStats != null)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          _reviewStats!['average_rating']?.toString() ?? '0',
+                          style: const TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // Rating Filter
+          if (_reviewStats != null &&
+              _reviewStats!['rating_distribution'] != null)
+            _buildRatingFilter(),
+
+          // Reviews Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: _buildReviewsContent(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingFilter() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[200]!),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Filter berdasarkan rating:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip('Semua', null),
+                const SizedBox(width: 8),
+                for (int i = 5; i >= 1; i--)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _buildFilterChip('$i ⭐', i),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, int? rating) {
+    final isSelected = _selectedRatingFilter == rating;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) => _filterByRating(rating),
+      selectedColor: const Color(0xFF006A55).withOpacity(0.2),
+      checkmarkColor: const Color(0xFF006A55),
+    );
+  }
+
+  Widget _buildReviewsContent() {
+    if (_isLoadingReviews && _reviews.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_reviewsErrorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            children: [
+              Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                _reviewsErrorMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: fetchReviews,
+                child: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_reviews.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            children: [
+              Icon(Icons.rate_review_outlined,
+                  size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                'Belum ada ulasan untuk toko ini',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _reviews.length,
+          separatorBuilder: (context, index) => const Divider(height: 24),
+          itemBuilder: (context, index) {
+            final review = _reviews[index];
+            return _buildReviewItem(review);
+          },
+        ),
+        if (_hasMoreReviews) ...[
+          const SizedBox(height: 16),
+          Center(
+            child: _isLoadingReviews
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: _loadMoreReviews,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF006A55),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Muat Lebih Banyak'),
+                  ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildReviewItem(Map<String, dynamic> review) {
+    final rating = review['rating'] ?? 0;
+    final reviewText = review['review'] ?? '';
+    final userName = review['user']?['name'] ?? 'Pengguna';
+    final createdAt = review['created_at'] ?? '';
+    // Parse date
+    DateTime? reviewDate;
+    try {
+      reviewDate = DateTime.parse(createdAt);
+    } catch (e) {
+      reviewDate = null;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // User info and rating
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: const Color(0xFF006A55),
+                child: Text(
+                  userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    if (reviewDate != null)
+                      Text(
+                        '${reviewDate.day}/${reviewDate.month}/${reviewDate.year}',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                  ],
+                ),
+              ),
+              // Rating stars
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(5, (index) {
+                  return Icon(
+                    index < rating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 16,
+                  );
+                }),
+              ),
+            ],
+          ),
+
+          if (reviewText.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              reviewText,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -249,13 +653,11 @@ class _TokoProfileUserPageState extends State<TokoProfileUserPage> {
           width: 80,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            // Jika gagal memuat gambar
             return _defaultLogo();
           },
         ),
       );
     } else {
-      // Jika URL kosong atau null
       return _defaultLogo();
     }
   }

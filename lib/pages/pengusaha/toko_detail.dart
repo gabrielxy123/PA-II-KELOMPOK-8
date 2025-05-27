@@ -1,11 +1,11 @@
 import 'package:carilaundry2/models/layanan.dart';
-import 'package:carilaundry2/models/produk.dart'; // Make sure this path is correct
+import 'package:carilaundry2/models/produk.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carilaundry2/core/apiConstant.dart';
-import 'package:intl/intl.dart'; // Import for NumberFormat
+import 'package:intl/intl.dart';
 
 class TokoDetailPage extends StatefulWidget {
   @override
@@ -18,9 +18,15 @@ class _TokoDetailPageState extends State<TokoDetailPage>
   List<Map<String, dynamic>> _layanans = [];
   String? _storeName;
   String? _storeLogo;
+  String? _storeTelp;
   bool _isLoading = true;
   bool _isAddingProduct = false;
   bool _isAddingLayanan = false;
+
+  // Review stats variables
+  double? _averageRating;
+  int? _totalReviews;
+  bool _reviewStatsLoaded = false;
 
   late TabController _tabController;
 
@@ -54,10 +60,10 @@ class _TokoDetailPageState extends State<TokoDetailPage>
       if (storeResponse.statusCode == 200) {
         final storeData = json.decode(storeResponse.body);
         if (storeData['data'] != null) {
-          // Removed success check
           setState(() {
             _storeName = storeData['data']['nama'];
             _storeLogo = storeData['data']['logo'];
+            _storeTelp = storeData['data']['noTelp'];
           });
         }
       } else {
@@ -65,83 +71,67 @@ class _TokoDetailPageState extends State<TokoDetailPage>
         print('Store Response Body: ${storeResponse.body}');
       }
 
+      // --- Review Stats Data --- (TAMBAHAN BARU)
+      await _fetchReviewStats(token);
+
       // --- Products Data ---
       print('Fetching products...');
       final productsResponse = await http.get(
         Uri.parse('${Apiconstant.BASE_URL}/produks'),
         headers: {'Authorization': 'Bearer $token'},
       );
-      // print('Products Response Status: ${productsResponse.statusCode}');
-      // print('Products Response Body: ${productsResponse.body}');
 
       if (productsResponse.statusCode == 200) {
         final productsData = json.decode(productsResponse.body);
-        // print('Parsed Products JSON: $productsData');
 
         if (productsData['data'] != null) {
-          // Removed success check
           final rawProductList = productsData['data'];
-          // print('Raw products list from API: $rawProductList');
           if (rawProductList is List) {
             setState(() {
               _products = rawProductList.cast<Map<String, dynamic>>();
-              // print('Updated _products state: $_products');
             });
           } else {
-            // print('ERROR: productsData[\'data\'] is not a List');
             setState(() {
               _products = [];
             });
           }
         } else {
-          // print('Products data is null in response');
           setState(() {
             _products = [];
           });
         }
       } else {
-        // print('Failed to load products: ${productsResponse.statusCode}');
         setState(() {
           _products = [];
         });
       }
 
       // --- Layanan Data ---
-      // print('Fetching layanan...');
       final layananResponse = await http.get(
         Uri.parse('${Apiconstant.BASE_URL}/layanan'),
         headers: {'Authorization': 'Bearer $token'},
       );
-      // print('Layanan Response Status: ${layananResponse.statusCode}');
-      // print('Layanan Response Body: ${layananResponse.body}');
 
       if (layananResponse.statusCode == 200) {
         final layananData = json.decode(layananResponse.body);
-        // print('Parsed Layanan JSON: $layananData');
 
         if (layananData['data'] != null) {
-          // Removed success check
           final rawLayananList = layananData['data'];
-          // print('Raw layanan list from API: $rawLayananList');
           if (rawLayananList is List) {
             setState(() {
               _layanans = rawLayananList.cast<Map<String, dynamic>>();
-              // print('Updated _layanans state: $_layanans');
             });
           } else {
-            // print('ERROR: layananData[\'data\'] is not a List');
             setState(() {
               _layanans = [];
             });
           }
         } else {
-          // print('Layanan data is null in response');
           setState(() {
             _layanans = [];
           });
         }
       } else {
-        // print('Failed to load layanan: ${layananResponse.statusCode}');
         setState(() {
           _layanans = [];
         });
@@ -163,6 +153,87 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     }
   }
 
+  // METHOD BARU untuk fetch review stats
+  Future<void> _fetchReviewStats(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${Apiconstant.BASE_URL}/pengusaha/toko-saya/ulasan/statistik'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['data']['stats'] != null) {
+          final stats = data['data']['stats'];
+          if (mounted) {
+            setState(() {
+              _averageRating = (stats['average_rating'] ?? 0.0).toDouble();
+              _totalReviews = stats['total_reviews'] ?? 0;
+              _reviewStatsLoaded = true;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Error loading review stats: $e');
+      if (mounted) {
+        setState(() {
+          _reviewStatsLoaded = true;
+        });
+      }
+    }
+  }
+
+  // METHOD BARU untuk build rating display
+  Widget _buildRatingDisplay() {
+    if (!_reviewStatsLoaded) {
+      // Loading state
+      return Row(
+        children: [
+          Icon(Icons.star, color: Colors.yellow, size: 16),
+          SizedBox(width: 4),
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_totalReviews == null || _totalReviews! == 0) {
+      // No reviews state
+      return Row(
+        children: [
+          Icon(Icons.star_border, color: Colors.grey[300], size: 16),
+          Text(
+            ' Belum ada ulasan',
+            style: TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ],
+      );
+    }
+
+    // Has reviews state
+    return Row(
+      children: [
+        Icon(Icons.star, color: Colors.yellow, size: 16),
+        Text(
+          ' ${_averageRating?.toStringAsFixed(1) ?? '0.0'} ($_totalReviews)',
+          style: TextStyle(color: Colors.white, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  // SEMUA METHOD LAINNYA TETAP SAMA (delete, edit, add, dll.)
   Future<void> _deleteProduct(String productId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -194,7 +265,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     }
   }
 
-  // NEW: Delete Service Function
   Future<void> _deleteLayanan(String layananId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -226,7 +296,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     }
   }
 
-  // NEW: Edit Product Function
   Future<void> _editProduct(
       String productId, String categoryId, String nama, double? harga) async {
     try {
@@ -267,7 +336,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     }
   }
 
-  // NEW: Edit Service Function
   Future<void> _editLayanan(String layananId, String nama, String harga) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -306,29 +374,23 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     }
   }
 
-  // NEW: Show Edit Product Dialog
   Future<void> _showEditProductDialog(Produk produk) async {
     final categories = await _fetchCategories();
 
-    // Debug: Print category data and product category
     print('Available categories: $categories');
     print('Product category ID: ${produk.id}');
 
-    // Ensure we have a valid selectedCategory
     String? selectedCategory;
 
-    // Find matching category ID, handle both string and int types
     if (produk.id != null) {
       final productCategoryId = produk.id.toString();
 
-      // Check if the product's category exists in available categories
       final categoryExists = categories
           .any((category) => category['id'].toString() == productCategoryId);
 
       if (categoryExists) {
         selectedCategory = productCategoryId;
       } else {
-        // If product's category doesn't exist, set to null (will show placeholder)
         selectedCategory = null;
         print(
             'Warning: Product category ID $productCategoryId not found in available categories');
@@ -405,7 +467,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
             ),
             ElevatedButton(
               onPressed: () async {
-                // Validation
                 if (selectedCategory == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Harap pilih kategori')),
@@ -432,7 +493,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                   }
                 }
 
-                // Show loading
                 showDialog(
                   context: context,
                   barrierDismissible: false,
@@ -449,14 +509,10 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                     harga,
                   );
 
-                  // Close loading dialog
                   Navigator.pop(context);
-                  // Close edit dialog
                   Navigator.pop(context);
                 } catch (e) {
-                  // Close loading dialog
                   Navigator.pop(context);
-                  // Show error
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Gagal memperbarui produk: $e')),
                   );
@@ -470,7 +526,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     );
   }
 
-  // NEW: Show Edit Service Dialog
   Future<void> _showEditLayananDialog(Layanan layanan) async {
     final namaLayananController = TextEditingController(text: layanan.nama);
     final hargaLayananController =
@@ -536,7 +591,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     );
   }
 
-  // NEW: Show Action Menu for Product
   void _showProductActionMenu(Produk produk) {
     showModalBottomSheet(
       context: context,
@@ -574,7 +628,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     );
   }
 
-  // NEW: Show Action Menu for Service
   void _showLayananActionMenu(Layanan layanan) {
     showModalBottomSheet(
       context: context,
@@ -612,7 +665,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     );
   }
 
-  // NEW: Show Delete Confirmation Dialog
   void _showDeleteConfirmation({
     required String title,
     required String content,
@@ -657,11 +709,8 @@ class _TokoDetailPageState extends State<TokoDetailPage>
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('Categories API Response: $data'); // Debug log
+        print('Categories API Response: $data');
 
-        // Handle both response formats:
-        // 1. Direct array response
-        // 2. Wrapped in 'data' field
         if (data is List) {
           return List<Map<String, dynamic>>.from(data);
         } else if (data['data'] != null) {
@@ -727,7 +776,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
 
   Future<void> _addLayanan(String nama, String harga) async {
     setState(() {
-      _isAddingLayanan = true; // Changed from _isAddingProduct
+      _isAddingLayanan = true;
     });
 
     try {
@@ -827,13 +876,11 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                 : () async {
                     if (selectedCategory == null ||
                         namaController.text.isEmpty) {
-                      // Added harga check
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Harap isi semua field')),
                       );
                       return;
                     }
-                    // Handle harga opsional
                     double? harga;
                     if (hargaController.text.isNotEmpty) {
                       harga = double.tryParse(hargaController.text);
@@ -852,7 +899,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                     );
 
                     if (mounted && !_isAddingProduct) {
-                      // Check mounted
                       Navigator.pop(context);
                     }
                   },
@@ -906,7 +952,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
             onPressed: _isAddingLayanan
                 ? null
                 : () async {
-                    // Changed controller check from == null to .text.isEmpty
                     if (namaLayananController.text.isEmpty ||
                         hargaLayananController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -914,7 +959,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                       );
                       return;
                     }
-                    // Validate harga is a number
                     if (double.tryParse(hargaLayananController.text) == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Harga harus berupa angka')),
@@ -928,7 +972,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                     );
 
                     if (mounted && !_isAddingLayanan) {
-                      // Check mounted
                       Navigator.pop(context);
                     }
                   },
@@ -953,7 +996,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _storeName ?? 'Toko Anda', // Display fetched store name or default
+          _storeName ?? 'Toko Anda',
           style: TextStyle(fontSize: 16),
         ),
         leading: IconButton(
@@ -962,7 +1005,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, size: 20), // Added refresh button
+            icon: Icon(Icons.refresh, size: 20),
             onPressed: _isLoading ? null : _loadStoreData,
           ),
         ],
@@ -986,8 +1029,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),
                           child: Container(
-                            color: Colors.white, // Background for the logo area
-                            // padding: EdgeInsets.all(_storeLogo != null && _storeLogo!.isNotEmpty ? 0 : 8.0), // Padding only if default
+                            color: Colors.white,
                             child: _buildLogo(_storeLogo),
                           ),
                         ),
@@ -1008,23 +1050,13 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                               overflow: TextOverflow.ellipsis,
                             ),
                             SizedBox(height: 4),
-                            // These are hardcoded, consider fetching them if available
                             Text(
-                              'No. Telp 082232323234',
+                              _storeTelp ?? 'No telepon tidak tersedia',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
                             ),
-                            Row(
-                              children: [
-                                Icon(Icons.star,
-                                    color: Colors.yellow, size: 16),
-                                Text(
-                                  ' 4.8 (244)',
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 12),
-                                ),
-                              ],
-                            ),
+                            // GANTI Row yang hardcoded dengan method baru
+                            _buildRatingDisplay(),
                           ],
                         ),
                       ),
@@ -1045,7 +1077,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                   indicatorColor: const Color(0xFF006A55),
                   tabs: [
                     Tab(text: 'Kategori Laundry'),
-                    Tab(text: 'Layanan Tambahan'), // Changed text for clarity
+                    Tab(text: 'Layanan Tambahan'),
                   ],
                 ),
                 Expanded(
@@ -1063,8 +1095,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
   }
 
   Widget _buildProductGrid() {
-    // // Debug print to verify data
-    // print('Products data: $_products');
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: _products.isEmpty
@@ -1086,27 +1116,22 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.8,
               ),
-              itemCount: _products.length + 1, // +1 for add button
+              itemCount: _products.length + 1,
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return _buildAddButton(onTap: _showAddServiceDialog);
                 }
 
-                final productIndex = index - 1; // Adjust index for products
+                final productIndex = index - 1;
 
-                // Verify index is within bounds
                 if (productIndex >= _products.length) {
                   return const SizedBox.shrink();
                 }
 
                 try {
                   final productMap = _products[productIndex];
-                  // print('Product $productIndex data: $productMap'); // Debug
-
                   final produk = Produk.fromJson(productMap);
-                  return _buildProdukItem(produk, onTap: () {
-                    // Handle product tap
-                  });
+                  return _buildProdukItem(produk, onTap: () {});
                 } catch (e) {
                   print('Error building product item $productIndex: $e');
                   return _buildErrorItem();
@@ -1116,7 +1141,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     );
   }
 
-// Helper widget for error cases
   Widget _buildErrorItem() {
     return Container(
       decoration: BoxDecoration(
@@ -1130,8 +1154,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
   }
 
   Widget _buildAdditionalProductGrid() {
-    // print('Products data: $_layanans');
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: _layanans.isEmpty
@@ -1153,27 +1175,22 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.8,
               ),
-              itemCount: _layanans.length + 1, // +1 for add button
+              itemCount: _layanans.length + 1,
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return _buildAddButton(onTap: _showAddLayananDialog);
                 }
 
-                final layananIndex = index - 1; // Adjust index for products
+                final layananIndex = index - 1;
 
-                // Verify index is within bounds
                 if (layananIndex >= _layanans.length) {
                   return const SizedBox.shrink();
                 }
 
                 try {
                   final layananMap = _layanans[layananIndex];
-                  // print('Product $productIndex data: $productMap'); // Debug
-
                   final layanan = Layanan.fromJson(layananMap);
-                  return _buildLayananItem(layanan, onTap: () {
-                    // Handle product tap
-                  });
+                  return _buildLayananItem(layanan, onTap: () {});
                 } catch (e) {
                   print('Error building product item $layananIndex: $e');
                   return _buildErrorItem();
@@ -1183,10 +1200,9 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     );
   }
 
-  // Modified to take VoidCallback for different actions
   Widget _buildAddButton({required VoidCallback onTap}) {
     return GestureDetector(
-      onTap: onTap, // Use the passed onTap callback
+      onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF006A55),
@@ -1223,12 +1239,10 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     );
   }
 
-  // Updated to take a Produk object
   Widget _buildProdukItem(Produk produk, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
-      onLongPress: () =>
-          _showProductActionMenu(produk), // NEW: Long press for actions
+      onLongPress: () => _showProductActionMenu(produk),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFF5F5F5),
@@ -1242,7 +1256,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
           ],
         ),
         child: Stack(
-          // NEW: Added Stack for action button
           children: [
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1303,7 +1316,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                 ),
               ],
             ),
-            // NEW: Action button in top right corner
             Positioned(
               top: 4,
               right: 4,
@@ -1332,8 +1344,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
   Widget _buildLayananItem(Layanan layanan, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
-      onLongPress: () =>
-          _showLayananActionMenu(layanan), // NEW: Long press for actions
+      onLongPress: () => _showLayananActionMenu(layanan),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFF5F5F5),
@@ -1347,7 +1358,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
           ],
         ),
         child: Stack(
-          // NEW: Added Stack for action button
           children: [
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1408,7 +1418,6 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                 ),
               ],
             ),
-            // NEW: Action button in top right corner
             Positioned(
               top: 4,
               right: 4,
@@ -1458,14 +1467,13 @@ class _TokoDetailPageState extends State<TokoDetailPage>
       height: 60,
       width: 60,
       decoration: BoxDecoration(
-        color: Colors.grey[200], // Slightly different color for default
-        borderRadius: BorderRadius.circular(
-            8.0), // Ensure this matches ClipRRect if image is present
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: const Icon(
         Icons.local_laundry_service_rounded,
         size: 30,
-        color: Color(0xFF006A55), // Theme color for icon
+        color: Color(0xFF006A55),
       ),
     );
   }

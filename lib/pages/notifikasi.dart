@@ -325,6 +325,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                         case 'order_rejected':
                                           Get.toNamed(AppRoutes.orderHistory);
                                           break;
+                                        case 'new_order':
+                                          Get.toNamed(AppRoutes.transaksiToko);
+                                          break;
+                                        case 'store_approved':
+                                          Get.toNamed(AppRoutes.tokoSaya);
+                                          break;
+                                        case 'order_done':
+                                          Get.toNamed(AppRoutes.orderHistory);
                                       }
                                     }
                                   }

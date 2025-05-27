@@ -1,11 +1,11 @@
 import 'package:carilaundry2/models/layanan.dart';
-import 'package:carilaundry2/models/produk.dart'; // Make sure this path is correct
+import 'package:carilaundry2/models/produk.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carilaundry2/core/apiConstant.dart';
-import 'package:intl/intl.dart'; // Import for NumberFormat
+import 'package:intl/intl.dart';
 
 class TokoUserDetailPage extends StatefulWidget {
   @override
@@ -18,7 +18,13 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
   List<Map<String, dynamic>> _layanans = [];
   String? _storeName;
   String? _storeLogo;
+  String? _storeTelp;
   bool _isLoading = true;
+
+  // Tambahkan variabel untuk review stats
+  double? _averageRating;
+  int? _totalReviews;
+  bool _reviewStatsLoaded = false;
 
   late TabController _tabController;
 
@@ -51,9 +57,9 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
       if (storeResponse.statusCode == 200) {
         final storeData = json.decode(storeResponse.body);
         if (storeData['data'] != null) {
-          // Removed success check
           setState(() {
             _storeName = storeData['data']['nama'];
+            _storeTelp = storeData['data']['noTelp'];
             _storeLogo = storeData['data']['logo'];
           });
         }
@@ -62,81 +68,65 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
         print('Store Response Body: ${storeResponse.body}');
       }
 
+      // --- Review Stats Data --- (TAMBAHAN BARU)
+      await _fetchReviewStats(tokoId);
+
       // --- Products Data ---
       print('Fetching products...');
       final productsResponse = await http.get(
         Uri.parse('${Apiconstant.BASE_URL}/produks-user/$tokoId'),
       );
-      // print('Products Response Status: ${productsResponse.statusCode}');
-      // print('Products Response Body: ${productsResponse.body}');
 
       if (productsResponse.statusCode == 200) {
         final productsData = json.decode(productsResponse.body);
-        // print('Parsed Products JSON: $productsData');
 
         if (productsData['data'] != null) {
-          // Removed success check
           final rawProductList = productsData['data'];
-          // print('Raw products list from API: $rawProductList');
           if (rawProductList is List) {
             setState(() {
               _products = rawProductList.cast<Map<String, dynamic>>();
-              // print('Updated _products state: $_products');
             });
           } else {
-            // print('ERROR: productsData[\'data\'] is not a List');
             setState(() {
               _products = [];
             });
           }
         } else {
-          // print('Products data is null in response');
           setState(() {
             _products = [];
           });
         }
       } else {
-        // print('Failed to load products: ${productsResponse.statusCode}');
         setState(() {
           _products = [];
         });
       }
 
       // --- Layanan Data ---
-      // print('Fetching layanan...');
       final layananResponse = await http.get(
         Uri.parse('${Apiconstant.BASE_URL}/layanan-user/$tokoId'),
       );
-      // print('Layanan Response Status: ${layananResponse.statusCode}');
-      // print('Layanan Response Body: ${layananResponse.body}');
 
       if (layananResponse.statusCode == 200) {
         final layananData = json.decode(layananResponse.body);
-        // print('Parsed Layanan JSON: $layananData');
 
         if (layananData['data'] != null) {
-          // Removed success check
           final rawLayananList = layananData['data'];
-          // print('Raw layanan list from API: $rawLayananList');
           if (rawLayananList is List) {
             setState(() {
               _layanans = rawLayananList.cast<Map<String, dynamic>>();
-              // print('Updated _layanans state: $_layanans');
             });
           } else {
-            // print('ERROR: layananData[\'data\'] is not a List');
             setState(() {
               _layanans = [];
             });
           }
         } else {
-          // print('Layanan data is null in response');
           setState(() {
             _layanans = [];
           });
         }
       } else {
-        // print('Failed to load layanan: ${layananResponse.statusCode}');
         setState(() {
           _layanans = [];
         });
@@ -158,12 +148,90 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
     }
   }
 
+  // METHOD BARU untuk fetch review stats
+  Future<void> _fetchReviewStats(int tokoId) async {
+    if (tokoId <= 0) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse('${Apiconstant.BASE_URL}/toko/$tokoId/ulasan?per_page=1'),
+        headers: {'Accept': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['data']['stats'] != null) {
+          final stats = data['data']['stats'];
+          if (mounted) {
+            setState(() {
+              _averageRating = (stats['average_rating'] ?? 0.0).toDouble();
+              _totalReviews = stats['total_reviews'] ?? 0;
+              _reviewStatsLoaded = true;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Error loading review stats: $e');
+      if (mounted) {
+        setState(() {
+          _reviewStatsLoaded = true;
+        });
+      }
+    }
+  }
+
+  // METHOD BARU untuk build rating display
+  Widget _buildRatingDisplay() {
+    if (!_reviewStatsLoaded) {
+      // Loading state
+      return Row(
+        children: [
+          Icon(Icons.star, color: Colors.yellow, size: 16),
+          SizedBox(width: 4),
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_totalReviews == null || _totalReviews! == 0) {
+      // No reviews state
+      return Row(
+        children: [
+          Icon(Icons.star_border, color: Colors.grey[300], size: 16),
+          Text(
+            ' Belum ada ulasan',
+            style: TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ],
+      );
+    }
+
+    // Has reviews state
+    return Row(
+      children: [
+        Icon(Icons.star, color: Colors.yellow, size: 16),
+        Text(
+          ' ${_averageRating?.toStringAsFixed(1) ?? '0.0'} ($_totalReviews)',
+          style: TextStyle(color: Colors.white, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _storeName ?? 'Toko Anda', // Display fetched store name or default
+          _storeName ?? 'Toko Anda',
           style: TextStyle(fontSize: 16),
         ),
         leading: IconButton(
@@ -172,7 +240,7 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, size: 20), // Added refresh button
+            icon: Icon(Icons.refresh, size: 20),
             onPressed: _isLoading ? null : _loadStoreData,
           ),
         ],
@@ -196,8 +264,7 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),
                           child: Container(
-                            color: Colors.white, // Background for the logo area
-                            // padding: EdgeInsets.all(_storeLogo != null && _storeLogo!.isNotEmpty ? 0 : 8.0), // Padding only if default
+                            color: Colors.white,
                             child: _buildLogo(_storeLogo),
                           ),
                         ),
@@ -218,23 +285,13 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
                               overflow: TextOverflow.ellipsis,
                             ),
                             SizedBox(height: 4),
-                            // These are hardcoded, consider fetching them if available
                             Text(
-                              'No. Telp 082232323234',
+                              _storeTelp ?? 'No telepon tidak tersedia',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
                             ),
-                            Row(
-                              children: [
-                                Icon(Icons.star,
-                                    color: Colors.yellow, size: 16),
-                                Text(
-                                  ' 4.8 (244)',
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 12),
-                                ),
-                              ],
-                            ),
+                            // GANTI Row yang hardcoded dengan method baru
+                            _buildRatingDisplay(),
                           ],
                         ),
                       ),
@@ -255,7 +312,7 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
                   indicatorColor: const Color(0xFF006A55),
                   tabs: [
                     Tab(text: 'Kategori Laundry'),
-                    Tab(text: 'Layanan Tambahan'), // Changed text for clarity
+                    Tab(text: 'Layanan Tambahan'),
                   ],
                 ),
                 Expanded(
@@ -301,9 +358,8 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
     );
   }
 
+  // SEMUA METHOD LAINNYA TETAP SAMA, TIDAK ADA PERUBAHAN
   Widget _buildProductGrid() {
-    // // Debug print to verify data
-    // print('Products data: $_products');
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: _products.isEmpty
@@ -323,16 +379,12 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.8,
               ),
-              itemCount: _products.length, // +1 for add button
+              itemCount: _products.length,
               itemBuilder: (context, index) {
                 try {
                   final productMap = _products[index];
-                  // print('Product $productIndex data: $productMap'); // Debug
-
                   final produk = Produk.fromJson(productMap);
-                  return _buildProdukItem(produk, onTap: () {
-                    // Handle product tap
-                  });
+                  return _buildProdukItem(produk, onTap: () {});
                 } catch (e) {
                   print('Error building product item $index: $e');
                   return _buildErrorItem();
@@ -342,7 +394,6 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
     );
   }
 
-// Helper widget for error cases
   Widget _buildErrorItem() {
     return Container(
       decoration: BoxDecoration(
@@ -356,8 +407,6 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
   }
 
   Widget _buildAdditionalProductGrid() {
-    // print('Products data: $_layanans');
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: _layanans.isEmpty
@@ -377,16 +426,12 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.8,
               ),
-              itemCount: _layanans.length, // +1 for add button
+              itemCount: _layanans.length,
               itemBuilder: (context, index) {
                 try {
                   final layananMap = _layanans[index];
-                  // print('Product $productIndex data: $productMap'); // Debug
-
                   final layanan = Layanan.fromJson(layananMap);
-                  return _buildLayananItem(layanan, onTap: () {
-                    // Handle product tap
-                  });
+                  return _buildLayananItem(layanan, onTap: () {});
                 } catch (e) {
                   print('Error building product item $index: $e');
                   return _buildErrorItem();
@@ -396,13 +441,12 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
     );
   }
 
-  // Updated to take a Produk object
   Widget _buildProdukItem(Produk produk, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5), // A light grey background
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -414,18 +458,15 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch, // Make children stretch
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              // To make the image/icon take available space
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: (produk.logoUrl != null && produk.logoUrl!.isNotEmpty)
                     ? Image.network(
                         produk.logoUrl!,
-                        fit: BoxFit
-                            .contain, // Use contain to see the whole image
+                        fit: BoxFit.contain,
                         loadingBuilder: (BuildContext context, Widget child,
                             ImageChunkEvent? loadingProgress) {
                           if (loadingProgress == null) return child;
@@ -440,17 +481,14 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
                           );
                         },
                         errorBuilder: (context, error, stackTrace) {
-                          // Fallback icon if image fails to load
                           return Icon(Icons.broken_image_outlined,
                               size: 40, color: Colors.grey[600]);
                         },
                       )
-                    // Default icon if no logoUrl
                     : Icon(Icons.inventory_2_outlined,
                         size: 40, color: Colors.grey[600]),
               ),
             ),
-            // SizedBox(height: 4), // Reduced space
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6.0),
               child: Text(
@@ -462,19 +500,16 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(
-                  top: 2.0, bottom: 6.0), // Adjusted padding
+              padding: const EdgeInsets.only(top: 2.0, bottom: 6.0),
               child: Text(
-                // Format harga with thousands separator
                 'Rp ${NumberFormat('#,###', 'id_ID').format(produk.harga)}',
                 style: TextStyle(
                     fontSize: 11,
-                    color: const Color(0xFF006A55), // Theme color for price
+                    color: const Color(0xFF006A55),
                     fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
-            // SizedBox(height: 4), // Reduced space
           ],
         ),
       ),
@@ -486,7 +521,7 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5), // A light grey background
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -498,18 +533,15 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch, // Make children stretch
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              // To make the image/icon take available space
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: (layanan.logoUrl != null && layanan.logoUrl!.isNotEmpty)
                     ? Image.network(
                         layanan.logoUrl!,
-                        fit: BoxFit
-                            .contain, // Use contain to see the whole image
+                        fit: BoxFit.contain,
                         loadingBuilder: (BuildContext context, Widget child,
                             ImageChunkEvent? loadingProgress) {
                           if (loadingProgress == null) return child;
@@ -524,17 +556,14 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
                           );
                         },
                         errorBuilder: (context, error, stackTrace) {
-                          // Fallback icon if image fails to load
                           return Icon(Icons.broken_image_outlined,
                               size: 40, color: Colors.grey[600]);
                         },
                       )
-                    // Default icon if no logoUrl
                     : Icon(Icons.inventory_2_outlined,
                         size: 40, color: Colors.grey[600]),
               ),
             ),
-            // SizedBox(height: 4), // Reduced space
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6.0),
               child: Text(
@@ -546,19 +575,16 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(
-                  top: 2.0, bottom: 6.0), // Adjusted padding
+              padding: const EdgeInsets.only(top: 2.0, bottom: 6.0),
               child: Text(
-                // Format harga with thousands separator
                 'Rp ${NumberFormat('#,###', 'id_ID').format(layanan.harga)}',
                 style: TextStyle(
                     fontSize: 11,
-                    color: const Color(0xFF006A55), // Theme color for price
+                    color: const Color(0xFF006A55),
                     fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
-            // SizedBox(height: 4), // Reduced space
           ],
         ),
       ),
@@ -589,14 +615,13 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
       height: 60,
       width: 60,
       decoration: BoxDecoration(
-        color: Colors.grey[200], // Slightly different color for default
-        borderRadius: BorderRadius.circular(
-            8.0), // Ensure this matches ClipRRect if image is present
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: const Icon(
         Icons.local_laundry_service_rounded,
         size: 30,
-        color: Color(0xFF006A55), // Theme color for icon
+        color: Color(0xFF006A55),
       ),
     );
   }

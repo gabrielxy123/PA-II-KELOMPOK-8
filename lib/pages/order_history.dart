@@ -130,7 +130,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage>
                 MaterialPageRoute(
                   builder: (context) => OrderReviewPage(
                     laundryName: laundryName,
-                    orderId: orderNumber,
+                    kodeTransaksi: orderNumber,
                   ),
                 ),
               );

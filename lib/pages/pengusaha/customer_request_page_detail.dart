@@ -24,7 +24,8 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
   // Controllers for kiloan input
   final TextEditingController _jumlahKiloanController = TextEditingController();
   final TextEditingController _hargaKiloanController = TextEditingController();
-  final TextEditingController _rejectionReasonController = TextEditingController();
+  final TextEditingController _rejectionReasonController =
+      TextEditingController();
 
   // Flag to track if kiloan data is being edited
   bool _isEditingKiloan = false;
@@ -275,11 +276,17 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
 
     // Disable process button if kiloan data is incomplete
     final bool canProcess = !isKiloanOrder || kiloanDataComplete;
-    
-    // Disable both buttons if status is already rejected or processed
+
+    // Status checks
     final bool isRejected = status == 'ditolak';
-    final bool isProcessed = status == 'diproses' || status == 'selesai';
-    final bool canTakeAction = !isRejected && !isProcessed;
+    final bool isProcessed = status == 'diproses';
+    final bool isCompleted = status == 'selesai';
+    final bool isPending = status == 'menunggu';
+
+    // Action availability
+    final bool canTakeAction = isPending; // Can only approve/reject if pending
+    final bool canComplete =
+        isProcessed; // Can only complete if being processed
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -319,79 +326,132 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                 ],
               ),
             ),
-          if (!canTakeAction)
+
+          // Status info messages
+          if (isRejected)
             Container(
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Colors.red.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: Colors.red.shade200),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    isRejected ? Icons.cancel : Icons.info_outline,
-                    color: isRejected ? Colors.red : Colors.blue,
-                  ),
+                  Icon(Icons.cancel, color: Colors.red.shade800),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      isRejected
-                          ? 'Pesanan ini telah ditolak dan tidak dapat diubah.'
-                          : 'Pesanan ini sedang diproses dan tidak dapat diubah.',
-                      style: TextStyle(
-                        color: isRejected ? Colors.red : Colors.blue,
-                      ),
+                      'Pesanan ini telah ditolak dan tidak dapat diubah.',
+                      style: TextStyle(color: Colors.red.shade800),
                     ),
                   ),
                 ],
               ),
             ),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: canTakeAction
-                      ? () {
-                          // Show rejection dialog with reason input
-                          _showRejectionDialog();
-                        }
-                      : null,
-                  icon: const Icon(Icons.close),
-                  label: const Text('Tolak'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: BorderSide(
-                      color: canTakeAction ? Colors.red : Colors.grey.shade300,
+
+          if (isCompleted)
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green.shade800),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Pesanan ini telah selesai.',
+                      style: TextStyle(color: Colors.green.shade800),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    disabledForegroundColor: Colors.grey.shade400,
+                  ),
+                ],
+              ),
+            ),
+
+          if (isProcessed)
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.hourglass_empty, color: Colors.blue.shade800),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Pesanan sedang diproses. Klik "Selesaikan" jika pesanan sudah selesai.',
+                      style: TextStyle(color: Colors.blue.shade800),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Action buttons
+          if (canTakeAction)
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showRejectionDialog();
+                    },
+                    icon: const Icon(Icons.close),
+                    label: const Text('Tolak'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: canTakeAction && canProcess
-                      ? () => _processRequest('proses')
-                      : null,
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Proses'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey.shade300,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed:
+                        canProcess ? () => _processRequest('proses') : null,
+                    icon: const Icon(Icons.check_circle),
+                    label: const Text('Proses'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
+              ],
+            ),
+
+          // Complete button for processed orders
+          if (canComplete)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _completeOrder,
+                icon: const Icon(Icons.done_all),
+                label: const Text('Selesaikan Pesanan'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
               ),
-            ],
-          ),
+            ),
         ],
       ),
     );
-  }
+  } 
 
   void _showRejectionDialog() {
     showDialog(
@@ -472,7 +532,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
       }
 
       final Map<String, dynamic> requestBody = {};
-      
+
       // Add rejection reason if provided
       if (action == 'tolak' && rejectionReason != null) {
         requestBody['alasan_penolakan'] = rejectionReason;
@@ -526,6 +586,94 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
           _showKiloanWarning = true;
           _isEditingKiloan = true;
         });
+      } else {
+        throw Exception(data['message'] ?? 'Terjadi kesalahan');
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _completeOrder() async {
+    // Show confirmation dialog first
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Selesaikan Pesanan'),
+        content:
+            const Text('Apakah Anda yakin ingin menyelesaikan pesanan ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Ya, Selesaikan'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.green,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      if (token == null) {
+        throw Exception('Token tidak ditemukan. Silakan login kembali.');
+      }
+
+      final response = await http.post(
+        Uri.parse(
+            '${Apiconstant.BASE_URL}/pengusaha/transaksi/${widget.kodeTransaksi}/selesai'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      // Close loading dialog
+      Navigator.pop(context);
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success'] == true) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pesanan berhasil diselesaikan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Refresh data
+        _fetchRequestDetail(widget.kodeTransaksi);
       } else {
         throw Exception(data['message'] ?? 'Terjadi kesalahan');
       }
@@ -614,7 +762,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
           ),
 
           // Rejection Reason Card (if status is rejected)
-          if (order['status']?.toString().toLowerCase() == 'ditolak' && 
+          if (order['status']?.toString().toLowerCase() == 'ditolak' &&
               order['alasan_penolakan'] != null)
             Card(
               elevation: 2,
@@ -642,7 +790,8 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                     ),
                     const Divider(height: 24),
                     Text(
-                      order['alasan_penolakan'] ?? 'Tidak ada alasan yang diberikan',
+                      order['alasan_penolakan'] ??
+                          'Tidak ada alasan yang diberikan',
                       style: const TextStyle(fontSize: 15),
                     ),
                   ],
