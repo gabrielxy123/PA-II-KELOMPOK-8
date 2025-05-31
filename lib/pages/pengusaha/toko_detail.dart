@@ -1023,7 +1023,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushReplacementNamed(
+                          Navigator.pushNamed(
                               context, "/profile-toko-saya");
                         },
                         child: ClipRRect(
