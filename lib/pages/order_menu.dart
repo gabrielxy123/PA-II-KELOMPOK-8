@@ -210,20 +210,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       }
 
       // Pisahkan produk satuan & kiloan
-      final List<Map<String, dynamic>> itemSatuan = [];
+      final List<Map<String, dynamic>> items = [];
       final List<Map<String, dynamic>> detailKiloan = [];
 
       for (var produk in _produks) {
         final quantity = produk.quantity ?? 0;
         if (quantity > 0) {
+          items.add({
+            'produk_id': produk.id,
+            'quantity': quantity,
+          });
+
           final serviceType = _getServiceTypeForProduk(produk);
-          if (serviceType == 'Satuan') {
-            itemSatuan.add({
-              'produk_id': produk.id,
-              'quantity': quantity,
-              'harga': produk.harga,
-            });
-          } else {
+          if (serviceType == 'Kiloan') {
             detailKiloan.add({
               'id_produk': produk.id,
               'nama_barang': produk.nama,
@@ -235,7 +234,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
       final orderData = {
         'toko_id': tokoId,
-        'items': itemSatuan,
+        'items': items,
+        'layanan_tambahan': _additionalServices
+            .where((s) => s.isSelected)
+            .map((s) => s.id)
+            .toList(),
+        'catatan': _notesController.text,
         'pesanan_kiloan': detailKiloan.isNotEmpty
             ? {
                 'jumlah_kiloan': null,
@@ -260,15 +264,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       print('Response from Server: $responseData');
 
       if (response.statusCode == 201) {
-        if (mounted) {  
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Pesanan berhasil dibuat')),
           );
           Navigator.of(context).pop(true);
         }
+      } else if (response.statusCode == 401) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Token kadaluarsa atau tidak sah, silahkan login ulang')),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Silahkan login terlebih dahulu')));
+          SnackBar(
+              content: Text(
+                  'Gagal: ${responseData['message'] ?? 'Terjadi kesalahan'}')),
+        );
       }
     } catch (e) {
       print('Error submitting order: $e');

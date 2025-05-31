@@ -336,6 +336,35 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     }
   }
 
+  Future<Map<String, dynamic>> _checkKiloanPriceExistsAndValue() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await http.get(
+        Uri.parse('${Apiconstant.BASE_URL}/cek-harga-kiloan'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final jsonBody = json.decode(response.body);
+        return {'exists': jsonBody['exists'], 'harga': jsonBody['harga']};
+      } else {
+        throw Exception('Gagal cek harga kiloan');
+      }
+    } catch (e) {
+      print('Error: $e');
+      return {
+        'exists': false,
+        'harga': null,
+      };
+    }
+  }
+
+  // NEW: Edit Service Function
   Future<void> _editLayanan(String layananId, String nama, String harga) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -828,92 +857,149 @@ class _TokoDetailPageState extends State<TokoDetailPage>
     final hargaController = TextEditingController();
 
     final categories = await _fetchCategories();
+    bool isKiloanCategory = false;
+    bool kiloanPriceExists = false;
+    double? existingKiloanPrice;
 
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Tambah Produk Baru'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Pilih Kategori'),
-                value: selectedCategory,
-                items: categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category['id'].toString(),
-                    child: Text(
-                        category['kategori'] ?? 'Kategori tidak diketahui'),
-                  );
-                }).toList(),
-                onChanged: (value) => selectedCategory = value,
-                validator: (value) =>
-                    value == null ? 'Kategori harus dipilih' : null,
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: namaController,
-                decoration: InputDecoration(labelText: 'Nama Produk'),
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: hargaController,
-                decoration: InputDecoration(labelText: 'Harga Produk (Satuan)'),
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: _isAddingProduct ? null : () => Navigator.pop(context),
-            child: Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: _isAddingProduct
-                ? null
-                : () async {
-                    if (selectedCategory == null ||
-                        namaController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Harap isi semua field')),
-                      );
-                      return;
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text('Tambah Produk Baru'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(labelText: 'Pilih Kategori'),
+                  value: selectedCategory,
+                  items: categories.map((category) {
+                    return DropdownMenuItem(
+                      value: category['id'].toString(),
+                      child: Text(
+                          category['kategori'] ?? 'Kategori tidak diketahui'),
+                    );
+                  }).toList(),
+                  onChanged: (value) async {
+                    selectedCategory = value;
+                    setState(() {
+                      isKiloanCategory = value == '2';
+                    });
+
+                    if (isKiloanCategory) {
+                      final result = await _checkKiloanPriceExistsAndValue();
+                      setState(() {
+                        kiloanPriceExists = result['exists'] ?? false;
+                        existingKiloanPrice = (result['harga'] != null)
+                            ? (result['harga'] is int
+                                ? (result['harga'] as int).toDouble()
+                                : result['harga'] as double)
+                            : null;
+                      });
+                    } else {
+                      setState(() {
+                        kiloanPriceExists = false;
+                        existingKiloanPrice = null;
+                      });
                     }
-                    double? harga;
-                    if (hargaController.text.isNotEmpty) {
-                      harga = double.tryParse(hargaController.text);
-                      if (harga == null) {
+                  },
+                  validator: (value) =>
+                      value == null ? 'Kategori harus dipilih' : null,
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: namaController,
+                  decoration: InputDecoration(labelText: 'Nama Produk'),
+                ),
+                SizedBox(height: 16),
+                if (!isKiloanCategory ||
+                    (isKiloanCategory && !kiloanPriceExists))
+                  TextField(
+                    controller: hargaController,
+                    decoration: InputDecoration(labelText: 'Harga Produk'),
+                    keyboardType: TextInputType.number,
+                  ),
+                if (isKiloanCategory && kiloanPriceExists)
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    margin: EdgeInsets.only(top: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade300),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Harga dasar untuk pesanan kiloan adalah Rp ${existingKiloanPrice?.toStringAsFixed(0)}. '
+                            'Anda dapat mengubah harga dasar pesanan kiloan dengan mengedit salah satu produk kiloan.',
+                            style: TextStyle(color: Colors.blue.shade900),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: _isAddingProduct ? null : () => Navigator.pop(context),
+              child: Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: _isAddingProduct
+                  ? null
+                  : () async {
+                      if (selectedCategory == null ||
+                          namaController.text.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Harga harus berupa angka')),
+                          SnackBar(content: Text('Harap isi semua field')),
                         );
                         return;
                       }
-                    }
 
-                    await _addNewService(
-                      selectedCategory!,
-                      namaController.text,
-                      harga,
-                    );
+                      double? harga;
+                      if (!isKiloanCategory ||
+                          (isKiloanCategory && !kiloanPriceExists)) {
+                        if (hargaController.text.isNotEmpty) {
+                          harga = double.tryParse(hargaController.text);
+                          if (harga == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('Harga harus berupa angka')),
+                            );
+                            return;
+                          }
+                        }
+                      }
 
-                    if (mounted && !_isAddingProduct) {
-                      Navigator.pop(context);
-                    }
-                  },
-            child: _isAddingProduct
-                ? SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Text('Simpan'),
-          ),
-        ],
+                      await _addNewService(
+                        selectedCategory!,
+                        namaController.text,
+                        harga,
+                      );
+
+                      if (mounted && !_isAddingProduct) {
+                        Navigator.pop(context);
+                      }
+                    },
+              child: _isAddingProduct
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text('Simpan'),
+            ),
+          ],
+        ),
       ),
     );
   }
