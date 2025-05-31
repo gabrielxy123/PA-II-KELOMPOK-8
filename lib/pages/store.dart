@@ -188,7 +188,7 @@ class _StorePageState extends State<StorePage> with WidgetsBindingObserver {
                     Icon(Icons.arrow_upward, size: 16, color: Colors.grey),
                     SizedBox(width: 4),
                     Text(
-                      'Swipe ke atas untuk refresh halaman',
+                      'Tarik ke atas untuk menampilkan ulang halaman',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey,

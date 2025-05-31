@@ -131,7 +131,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF006A55),
-        title: Text('Notifications', style: TextStyle(color: Colors.white)),
+        title: Text('Notifikasi', style: TextStyle(color: Colors.white)),
         actions: [
           if (_notifications.any((notification) => !notification.isRead))
             IconButton(
@@ -155,11 +155,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Failed to load notifications'),
+                      Text('Gagal untuk menampilkan notifikasi'),
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadNotifications,
-                        child: Text('Try Again'),
+                        child: Text('Coba Lagi'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF006A55),
                         ),
@@ -179,7 +179,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ),
                           SizedBox(height: 16),
                           Text(
-                            'No notifications yet',
+                            'Belum Ada Notifikasi',
                             style: TextStyle(
                               fontSize: 18,
                               color: Colors.grey[700],
@@ -223,17 +223,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                     return AlertDialog(
                                       title: Text("Confirm"),
                                       content: Text(
-                                          "Are you sure you want to delete this notification?"),
+                                          "Yakin untuk menghapus notifikasi ini?"),
                                       actions: [
                                         TextButton(
                                           onPressed: () =>
                                               Navigator.of(context).pop(false),
-                                          child: Text("Cancel"),
+                                          child: Text("Batal"),
                                         ),
                                         TextButton(
                                           onPressed: () =>
                                               Navigator.of(context).pop(true),
-                                          child: Text("Delete"),
+                                          child: Text("Hapus"),
                                         ),
                                       ],
                                     );
