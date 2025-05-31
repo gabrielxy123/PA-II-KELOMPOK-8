@@ -10,6 +10,7 @@ class TokoProfilePage extends StatefulWidget {
 }
 
 class _TokoProfilePageState extends State<TokoProfilePage> {
+  // Existing variables
   String? _storeName;
   String? _storeDescription;
   String? _storeAddress;
@@ -20,22 +21,211 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
   String? _storeLogo;
   String? _kecamatan;
   String? _kabupaten;
+  String? _provinsi;
   bool _isLoading = true;
   String? _errorMessage;
 
-  // Review stats variables
+  // Edit mode variables
+  bool _isEditMode = false;
+  bool _isSaving = false;
+  
+  // Form controllers
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _addressController;
+  late TextEditingController _contactController;
+  late TextEditingController _waktuBukaController;
+  late TextEditingController _waktuTutupController;
+
+  // Address dropdown variables
+  List<Map<String, dynamic>> provinces = [];
+  List<Map<String, dynamic>> regencies = [];
+  List<Map<String, dynamic>> districts = [];
+  
+  String? selectedProvinceId;
+  String? selectedRegencyId;
+  String? selectedDistrictId;
+  
+  String? selectedProvinceName;
+  String? selectedRegencyName;
+  String? selectedDistrictName;
+  
+  bool isLoadingProvinces = false;
+  bool isLoadingRegencies = false;
+  bool isLoadingDistricts = false;
+
+  // Review stats variables (existing)
   double? _averageRating;
   int? _totalReviews;
   bool _reviewStatsLoaded = false;
-
-  // Recent reviews variables
   List<Map<String, dynamic>> _recentReviews = [];
   bool _recentReviewsLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeControllers();
     fetchStoreData();
+    _loadProvinces();
+  }
+
+  void _initializeControllers() {
+    _nameController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _addressController = TextEditingController();
+    _contactController = TextEditingController();
+    _waktuBukaController = TextEditingController();
+    _waktuTutupController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _addressController.dispose();
+    _contactController.dispose();
+    _waktuBukaController.dispose();
+    _waktuTutupController.dispose();
+    super.dispose();
+  }
+
+  void _populateControllers() {
+    _nameController.text = _storeName ?? '';
+    _descriptionController.text = _storeDescription ?? '';
+    _addressController.text = _storeAddress ?? '';
+    _contactController.text = _storeContact ?? '';
+    _waktuBukaController.text = _storeOperationDays ?? '';
+    _waktuTutupController.text = _storeOperationHours ?? '';
+    
+    // Set selected address values
+    selectedProvinceName = _provinsi;
+    selectedRegencyName = _kabupaten;
+    selectedDistrictName = _kecamatan;
+  }
+
+  // Address API methods
+  Future<void> _loadProvinces() async {
+    setState(() => isLoadingProvinces = true);
+    try {
+      final response = await http.get(
+        Uri.parse('https://emsifa.github.io/api-wilayah-indonesia/api/provinces.json')
+      );
+      
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        setState(() {
+          provinces = data.map((province) => {
+            'id': province['id'].toString(),
+            'name': province['name']
+          }).toList();
+        });
+        
+        // Find and set current province if exists
+        if (_provinsi != null) {
+          final currentProvince = provinces.firstWhere(
+            (province) => province['name'] == _provinsi,
+            orElse: () => {},
+          );
+          if (currentProvince.isNotEmpty) {
+            selectedProvinceId = currentProvince['id'];
+            _loadRegencies(selectedProvinceId!);
+          }
+        }
+      }
+    } catch (e) {
+      print('Error loading provinces: $e');
+    } finally {
+      setState(() => isLoadingProvinces = false);
+    }
+  }
+
+  Future<void> _loadRegencies(String provinceId) async {
+    setState(() {
+      if (selectedProvinceId != provinceId) {
+        selectedRegencyId = null;
+        selectedRegencyName = null;
+        selectedDistrictId = null;
+        selectedDistrictName = null;
+      }
+      regencies = [];
+      districts = [];
+      isLoadingRegencies = true;
+    });
+    
+    try {
+      final response = await http.get(
+        Uri.parse('https://emsifa.github.io/api-wilayah-indonesia/api/regencies/$provinceId.json')
+      );
+      
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        setState(() {
+          regencies = data.map((regency) => {
+            'id': regency['id'].toString(),
+            'name': regency['name']
+          }).toList();
+        });
+        
+        // Find and set current regency if exists
+        if (_kabupaten != null && selectedRegencyId == null) {
+          final currentRegency = regencies.firstWhere(
+            (regency) => regency['name'] == _kabupaten,
+            orElse: () => {},
+          );
+          if (currentRegency.isNotEmpty) {
+            selectedRegencyId = currentRegency['id'];
+            _loadDistricts(selectedRegencyId!);
+          }
+        }
+      }
+    } catch (e) {
+      print('Error loading regencies: $e');
+    } finally {
+      setState(() => isLoadingRegencies = false);
+    }
+  }
+
+  Future<void> _loadDistricts(String regencyId) async {
+    setState(() {
+      if (selectedRegencyId != regencyId) {
+        selectedDistrictId = null;
+        selectedDistrictName = null;
+      }
+      districts = [];
+      isLoadingDistricts = true;
+    });
+    
+    try {
+      final response = await http.get(
+        Uri.parse('https://emsifa.github.io/api-wilayah-indonesia/api/districts/$regencyId.json')
+      );
+      
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        setState(() {
+          districts = data.map((district) => {
+            'id': district['id'].toString(),
+            'name': district['name']
+          }).toList();
+        });
+        
+        // Find and set current district if exists
+        if (_kecamatan != null && selectedDistrictId == null) {
+          final currentDistrict = districts.firstWhere(
+            (district) => district['name'] == _kecamatan,
+            orElse: () => {},
+          );
+          if (currentDistrict.isNotEmpty) {
+            selectedDistrictId = currentDistrict['id'];
+          }
+        }
+      }
+    } catch (e) {
+      print('Error loading districts: $e');
+    } finally {
+      setState(() => isLoadingDistricts = false);
+    }
   }
 
   Future<void> fetchStoreData() async {
@@ -43,7 +233,6 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token') ?? '';
 
-      // Fetch store data
       final response = await http.get(
         Uri.parse('${Apiconstant.BASE_URL}/toko-saya'),
         headers: {
@@ -56,25 +245,20 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
         if (data['success'] == true) {
           setState(() {
             _storeName = data['data']['nama'];
-            _storeDescription =
-                data['data']['deskripsi'] ?? 'Deskripsi tidak tersedia';
+            _storeDescription = data['data']['deskripsi'] ?? 'Deskripsi tidak tersedia';
             _storeAddress = data['data']['jalan'] ?? 'Alamat tidak tersedia';
-            _kecamatan =
-                data['data']['kecamatan'] ?? 'Kecamatan tidak disertakan';
-            _kabupaten =
-                data['data']['kabupaten'] ?? 'Kabupaten tidak disertakan';
-            _storeOperationDays =
-                data['data']['waktuBuka'] ?? 'Waktu buka tidak tersedia';
-            _storeOperationHours =
-                data['data']['waktuTutup'] ?? 'Waktu tutup tidak tersedia';
+            _kecamatan = data['data']['kecamatan'] ?? 'Kecamatan tidak disertakan';
+            _kabupaten = data['data']['kabupaten'] ?? 'Kabupaten tidak disertakan';
+            _provinsi = data['data']['provinsi'] ?? 'Provinsi tidak disertakan';
+            _storeOperationDays = data['data']['waktuBuka'] ?? 'Waktu buka tidak tersedia';
+            _storeOperationHours = data['data']['waktuTutup'] ?? 'Waktu tutup tidak tersedia';
             _storeContact = data['data']['noTelp'] ?? 'Kontak tidak tersedia';
-            _storeFacebook =
-                data['data']['facebook'] ?? 'Facebook tidak tersedia';
+            _storeFacebook = data['data']['facebook'] ?? 'Facebook tidak tersedia';
             _storeLogo = data['data']['logo'];
             _isLoading = false;
           });
 
-          // Fetch review stats and recent reviews after store data is loaded
+          _populateControllers();
           await _fetchReviewStats(token);
           await _fetchRecentReviews(token);
         } else {
@@ -94,11 +278,230 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
     }
   }
 
+  Future<void> _updateStoreData() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Validate address selections
+    if (selectedProvinceName == null || selectedRegencyName == null || selectedDistrictName == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Harap lengkapi semua pilihan alamat'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final updateData = {
+        'nama': _nameController.text.trim(),
+        'deskripsi': _descriptionController.text.trim(),
+        'jalan': _addressController.text.trim(),
+        'kecamatan': selectedDistrictName!,
+        'kabupaten': selectedRegencyName!,
+        'provinsi': selectedProvinceName!,
+        'noTelp': _contactController.text.trim(),
+        'waktuBuka': _waktuBukaController.text.trim(),
+        'waktuTutup': _waktuTutupController.text.trim(),
+      };
+
+      final response = await http.put(
+        Uri.parse('${Apiconstant.BASE_URL}/toko/update'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(updateData),
+      );
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        setState(() {
+          _storeName = _nameController.text;
+          _storeDescription = _descriptionController.text;
+          _storeAddress = _addressController.text;
+          _kecamatan = selectedDistrictName!;
+          _kabupaten = selectedRegencyName!;
+          _provinsi = selectedProvinceName!;
+          _storeContact = _contactController.text;
+          _storeOperationDays = _waktuBukaController.text;
+          _storeOperationHours = _waktuTutupController.text;
+          _isEditMode = false;
+          _isSaving = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Data toko berhasil diperbarui'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        throw Exception(responseData['message'] ?? 'Gagal memperbarui data');
+      }
+    } catch (e) {
+      setState(() {
+        _isSaving = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memperbarui data: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _toggleEditMode() {
+    setState(() {
+      if (_isEditMode) {
+        _populateControllers();
+      }
+      _isEditMode = !_isEditMode;
+    });
+  }
+
+  Widget _buildEditableField({
+    required String label,
+    required TextEditingController controller,
+    required String? Function(String?) validator,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) {
+    if (!_isEditMode) {
+      return _buildDetailSection(label, controller.text);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        validator: validator,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeField({
+    required String label,
+    required TextEditingController controller,
+    required String? Function(String?) validator,
+  }) {
+    if (!_isEditMode) {
+      return _buildDetailSection(label, controller.text);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        validator: validator,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          suffixIcon: IconButton(
+            icon: Icon(Icons.access_time),
+            onPressed: () async {
+              final TimeOfDay? picked = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.now(),
+              );
+              if (picked != null) {
+                final formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}:00';
+                controller.text = formattedTime;
+              }
+            },
+          ),
+        ),
+        readOnly: true,
+      ),
+    );
+  }
+
+  Widget _buildAddressDropdown({
+    required String label,
+    required String? value,
+    required List<Map<String, dynamic>> items,
+    required Function(String?) onChanged,
+    required bool isLoading,
+    String? currentDisplayValue,
+  }) {
+    if (!_isEditMode) {
+      return _buildDetailSection(label, currentDisplayValue ?? 'Tidak tersedia');
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                isExpanded: true,
+                hint: Text("Pilih $label"),
+                value: value,
+                items: items.map((item) {
+                  return DropdownMenuItem<String>(
+                    value: item['id'],
+                    child: Text(item['name']),
+                  );
+                }).toList(),
+                onChanged: onChanged,
+              ),
+            ),
+          ),
+          if (isLoading) 
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: LinearProgressIndicator(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Keep existing methods for review stats and recent reviews
   Future<void> _fetchReviewStats(String token) async {
     try {
       final response = await http.get(
-        Uri.parse(
-            '${Apiconstant.BASE_URL}/pengusaha/toko-saya/ulasan/statistik'),
+        Uri.parse('${Apiconstant.BASE_URL}/pengusaha/toko-saya/ulasan/statistik'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -131,8 +534,7 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
   Future<void> _fetchRecentReviews(String token) async {
     try {
       final response = await http.get(
-        Uri.parse(
-            '${Apiconstant.BASE_URL}/pengusaha/toko-saya/ulasan?per_page=3'),
+        Uri.parse('${Apiconstant.BASE_URL}/pengusaha/toko-saya/ulasan?per_page=3'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -144,8 +546,7 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
         if (data['success'] == true && data['data']['reviews'] != null) {
           if (mounted) {
             setState(() {
-              _recentReviews =
-                  List<Map<String, dynamic>>.from(data['data']['reviews']);
+              _recentReviews = List<Map<String, dynamic>>.from(data['data']['reviews']);
               _recentReviewsLoaded = true;
             });
           }
@@ -161,6 +562,7 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
     }
   }
 
+  // Keep existing widget methods for rating, reviews, etc.
   Widget _buildRatingInfoCard() {
     if (!_reviewStatsLoaded) {
       return _buildInfoCard(
@@ -254,12 +656,8 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
             if (_totalReviews != null && _totalReviews! > 3)
               TextButton(
                 onPressed: () {
-                  // Navigate to full reviews page
-                  // Navigator.pushNamed(context, '/ulasan-lengkap');
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            'Fitur halaman ulasan lengkap akan segera hadir')),
+                    SnackBar(content: Text('Fitur halaman ulasan lengkap akan segera hadir')),
                   );
                 },
                 child: Text('Lihat Semua'),
@@ -267,10 +665,7 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
           ],
         ),
         SizedBox(height: 8),
-        ...(_recentReviews
-            .take(3)
-            .map((review) => _buildReviewItem(review))
-            .toList()),
+        ...(_recentReviews.take(3).map((review) => _buildReviewItem(review)).toList()),
       ],
     );
   }
@@ -282,7 +677,6 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
     final createdAt = review['created_at'] ?? '';
     final kodeTransaksi = review['transaksi']?['kode_transaksi'] ?? '';
 
-    // Parse date
     String formattedDate = '';
     try {
       final date = DateTime.parse(createdAt);
@@ -319,8 +713,7 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
                   children: [
                     Text(
                       userName,
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                     Text(
                       formattedDate,
@@ -375,98 +768,267 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
         ),
         backgroundColor: const Color(0xFF006A55),
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          if (!_isLoading && _errorMessage == null)
+            IconButton(
+              icon: Icon(
+                _isEditMode ? Icons.close : Icons.edit,
+                color: Colors.white,
+              ),
+              onPressed: _toggleEditMode,
+            ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
               ? Center(child: Text(_errorMessage!))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              spreadRadius: 2,
-                              blurRadius: 5,
+              : Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                              ),
+                            ],
+                            border: Border.all(
+                              color: const Color.fromARGB(255, 0, 0, 0),
+                              width: 1,
                             ),
-                          ],
-                          border: Border.all(
-                            color: const Color.fromARGB(255, 0, 0, 0),
-                            width: 1,
+                          ),
+                          child: _buildLogo(_storeLogo),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Store Name (editable)
+                        if (_isEditMode)
+                          _buildEditableField(
+                            label: 'Nama Toko',
+                            controller: _nameController,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Nama toko tidak boleh kosong';
+                              }
+                              return null;
+                            },
+                          )
+                        else
+                          Text(
+                            _storeName ?? 'Nama Tidak Tersedia',
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE4EEEC),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              // Description (editable)
+                              _buildEditableField(
+                                label: 'Deskripsi',
+                                controller: _descriptionController,
+                                maxLines: 3,
+                                validator: (value) => null, // Optional field
+                              ),
+                              
+                              const SizedBox(height: 16),
+                              
+                              if (!_isEditMode) ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildRatingInfoCard(),
+                                    _buildTotalReviewsCard(),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                              
+                              // Address fields (editable with dropdowns)
+                              _buildEditableField(
+                                label: 'Alamat Jalan',
+                                controller: _addressController,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Alamat tidak boleh kosong';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              
+                              // Province Dropdown
+                              _buildAddressDropdown(
+                                label: 'Provinsi',
+                                value: selectedProvinceId,
+                                items: provinces,
+                                isLoading: isLoadingProvinces,
+                                currentDisplayValue: _provinsi,
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    selectedProvinceId = newValue;
+                                    selectedProvinceName = provinces.firstWhere(
+                                      (province) => province['id'] == newValue)['name'];
+                                    _loadRegencies(newValue!);
+                                  });
+                                },
+                              ),
+                              
+                              // Regency Dropdown
+                              _buildAddressDropdown(
+                                label: 'Kabupaten',
+                                value: selectedRegencyId,
+                                items: regencies,
+                                isLoading: isLoadingRegencies,
+                                currentDisplayValue: _kabupaten,
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    selectedRegencyId = newValue;
+                                    selectedRegencyName = regencies.firstWhere(
+                                      (regency) => regency['id'] == newValue)['name'];
+                                    _loadDistricts(newValue!);
+                                  });
+                                },
+                              ),
+                              
+                              // District Dropdown
+                              _buildAddressDropdown(
+                                label: 'Kecamatan',
+                                value: selectedDistrictId,
+                                items: districts,
+                                isLoading: isLoadingDistricts,
+                                currentDisplayValue: _kecamatan,
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    selectedDistrictId = newValue;
+                                    selectedDistrictName = districts.firstWhere(
+                                      (district) => district['id'] == newValue)['name'];
+                                  });
+                                },
+                              ),
+                              
+                              // Time fields (editable)
+                              _buildTimeField(
+                                label: 'Waktu Buka',
+                                controller: _waktuBukaController,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Waktu buka tidak boleh kosong';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              
+                              _buildTimeField(
+                                label: 'Waktu Tutup',
+                                controller: _waktuTutupController,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Waktu tutup tidak boleh kosong';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              
+                              _buildEditableField(
+                                label: 'Nomor Telepon',
+                                controller: _contactController,
+                                keyboardType: TextInputType.phone,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Nomor telepon tidak boleh kosong';
+                                  }
+                                  if (!RegExp(r'^[0-9]{10,15}$').hasMatch(value)) {
+                                    return 'Nomor telepon harus 10-15 digit';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              
+                              if (!_isEditMode) ...[
+                                _buildContactRow("Whatsapp", _storeContact ?? 'N/A', Icons.phone_android_rounded),
+                                _buildContactRow("Facebook", _storeFacebook ?? 'N/A', Icons.facebook),
+                              ],
+                            ],
                           ),
                         ),
-                        child: _buildLogo(_storeLogo),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _storeName ?? 'Nama Tidak Tersedia',
-                        style: const TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE4EEEC),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              _storeDescription ?? '',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 14, color: Colors.black87),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildRatingInfoCard(),
-                                _buildTotalReviewsCard(), // CHANGED: dari Jumlah Pesanan ke Total Ulasan
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            _buildDetailSection("Alamat", _storeAddress ?? ''),
-                            _buildDetailSection("Kecamatan", _kecamatan ?? ''),
-                            _buildDetailSection("Kabupaten", _kabupaten ?? ''),
-                            _buildDetailSection(
-                                "Waktu Buka", _storeOperationDays ?? ''),
-                            _buildDetailSection(
-                                "Waktu Tutup", _storeOperationHours ?? ''),
-                            const SizedBox(height: 16),
-                            _buildDetailSection("Kontak", ""),
-                            _buildContactRow("Whatsapp", _storeContact ?? 'N/A',
-                                Icons.phone_android_rounded),
-                            _buildContactRow("Facebook",
-                                _storeFacebook ?? 'N/A', Icons.facebook),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // NEW: Recent Reviews Section
-                      _buildRecentReviewsSection(),
-                    ],
+                        
+                        // Save/Cancel buttons for edit mode
+                        if (_isEditMode) ...[
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: _isSaving ? null : _updateStoreData,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF006A55),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                  child: _isSaving
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Simpan Perubahan',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: _isSaving ? null : _toggleEditMode,
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFF006A55)),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                  child: const Text(
+                                    'Batal',
+                                    style: TextStyle(color: Color(0xFF006A55)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        
+                        if (!_isEditMode) ...[
+                          const SizedBox(height: 20),
+                          _buildRecentReviewsSection(),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
     );
   }
 
-  Widget _buildInfoCard(
-      {required String title, required String value, required IconData icon}) {
+  // Keep existing helper methods
+  Widget _buildInfoCard({required String title, required String value, required IconData icon}) {
     return Container(
       width: 140,
       padding: const EdgeInsets.all(12),
@@ -478,12 +1040,9 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
         children: [
           Icon(icon, color: Colors.white, size: 20),
           const SizedBox(height: 8),
-          Text(title,
-              style: const TextStyle(color: Colors.white, fontSize: 12)),
+          Text(title, style: const TextStyle(color: Colors.white, fontSize: 12)),
           const SizedBox(height: 4),
-          Text(value,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold)),
+          Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -495,10 +1054,7 @@ class _TokoProfilePageState extends State<TokoProfilePage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "$title : ",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          Text("$title : ", style: const TextStyle(fontWeight: FontWeight.bold)),
           Expanded(child: Text(content)),
         ],
       ),
