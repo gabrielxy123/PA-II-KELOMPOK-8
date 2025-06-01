@@ -243,6 +243,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Nota'),
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -379,18 +380,18 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: Colors.orange.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: Colors.orange.shade200),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.hourglass_empty, color: Colors.blue.shade800),
+                  Icon(Icons.hourglass_empty, color: Colors.orange.shade600),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Pesanan sedang diproses. Klik "Selesaikan" jika pesanan sudah selesai.',
-                      style: TextStyle(color: Colors.blue.shade800),
+                      style: TextStyle(color: Colors.orange.shade600),
                     ),
                   ),
                 ],
@@ -442,8 +443,8 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                 icon: const Icon(Icons.done_all),
                 label: const Text('Selesaikan Pesanan'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.green.shade100,
+                  foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
@@ -451,7 +452,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
         ],
       ),
     );
-  } 
+  }
 
   void _showRejectionDialog() {
     showDialog(
@@ -709,8 +710,15 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
           Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: Colors.white,
+            shadowColor: Colors.black26,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -767,8 +775,15 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
             Card(
               elevation: 2,
               margin: const EdgeInsets.only(bottom: 16),
+              color: Colors.white,
+              shadowColor: Colors.black26,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -803,8 +818,15 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
           Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: Colors.white,
+            shadowColor: Colors.black26,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -812,7 +834,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.store, color: Colors.blue),
+                      Icon(Icons.store, color: Color(0xFF006A55)),
                       SizedBox(width: 8),
                       Text(
                         'Informasi Toko',
@@ -856,8 +878,15 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
           Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: Colors.white,
+            shadowColor: Colors.black26,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -865,7 +894,8 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.local_laundry_service, color: Colors.blue),
+                      Icon(Icons.local_laundry_service,
+                          color: const Color(0xFF006A55)),
                       SizedBox(width: 8),
                       Text(
                         'Layanan Laundry',
@@ -891,11 +921,11 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: const Color(0xFF006A55).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(Icons.local_laundry_service,
-                                color: Colors.blue, size: 20),
+                                color: const Color(0xFF006A55), size: 20),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -943,8 +973,15 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
             Card(
               elevation: 2,
               margin: const EdgeInsets.only(bottom: 16),
+              color: Colors.white,
+              shadowColor: Colors.black26,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -955,7 +992,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.scale, color: Colors.blue),
+                            Icon(Icons.scale, color: const Color(0xFF006A55)),
                             SizedBox(width: 8),
                             Text(
                               'Pesanan Kiloan',
@@ -979,7 +1016,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                                 _isEditingKiloan ? Icons.close : Icons.edit),
                             label: Text(_isEditingKiloan ? 'Batal' : 'Edit'),
                             style: TextButton.styleFrom(
-                              foregroundColor: Colors.blue,
+                              foregroundColor: const Color(0xFF006A55),
                               padding: EdgeInsets.zero,
                             ),
                           ),
@@ -1042,7 +1079,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                             child: ElevatedButton(
                               onPressed: _updateKiloanData,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
+                                backgroundColor: const Color(0xFF006A55),
                                 foregroundColor: Colors.white,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),
@@ -1096,7 +1133,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                                         pesananKiloan['total_kiloan']),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.blue,
+                                      color: const Color(0xFF006A55),
                                     ),
                                   ),
                                 ],
@@ -1127,11 +1164,11 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.purple.withOpacity(0.1),
+                                color: const Color(0xFF006A55).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(Icons.category,
-                                  color: Colors.purple),
+                                  color: Color(0xFF006A55)),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -1161,8 +1198,15 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
             Card(
               elevation: 2,
               margin: const EdgeInsets.only(bottom: 16),
+              color: Colors.white,
+              shadowColor: Colors.black26,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -1170,7 +1214,8 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.add_circle_outline, color: Colors.blue),
+                        Icon(Icons.add_circle_outline,
+                            color: const Color(0xFF006A55)),
                         SizedBox(width: 8),
                         Text(
                           'Layanan Tambahan',
@@ -1195,11 +1240,11 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
+                                color: const Color(0xFF006A55).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.add_circle,
-                                  color: Colors.green, size: 20),
+                              child: const Icon(Icons.iron,
+                                  color: Color(0xFF006A55), size: 20),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -1227,7 +1272,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
           // Summary Card
           Card(
             elevation: 2,
-            color: Colors.blue.shade50,
+            color: Colors.green.shade100,
             margin: const EdgeInsets.only(bottom: 16),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1276,7 +1321,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Grand Total',
+                        'Total',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -1287,7 +1332,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
-                          color: Colors.blue,
+                          color: Colors.black,
                         ),
                       ),
                     ],
@@ -1319,7 +1364,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
         icon = Icons.cancel;
         break;
       default:
-        color = Colors.blue;
+        color = const Color(0xFF006A55);
         icon = Icons.info;
     }
 

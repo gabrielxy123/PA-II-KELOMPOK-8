@@ -177,12 +177,10 @@ class _NotificationScreenState extends State<NotificationScreen>
   }
 
   void _handleNotificationTap(NotificationModel notification) async {
-    // Tandai sebagai dibaca jika belum
     if (!notification.isRead) {
       await _markAsRead(notification.id);
     }
 
-    // Pastikan widget masih mounted sebelum melanjutkan
     if (!mounted) return;
 
     try {
@@ -190,7 +188,6 @@ class _NotificationScreenState extends State<NotificationScreen>
 
       Map<String, dynamic>? notificationData;
 
-      // Handle different data types
       if (notification.data is String) {
         try {
           notificationData =
@@ -205,7 +202,6 @@ class _NotificationScreenState extends State<NotificationScreen>
 
       debugPrint('Parsed Notification Data: $notificationData');
 
-      // Try to extract transaction code
       String? kodeTransaksi;
       String? eventType;
 
@@ -217,7 +213,6 @@ class _NotificationScreenState extends State<NotificationScreen>
         eventType = notificationData['event_type']?.toString() ??
             notificationData['type']?.toString();
 
-        // If not found in data, try to extract from body
         if (kodeTransaksi == null) {
           final regex = RegExp(r'\b[A-Z0-9]{8,}\b');
           final match = regex.firstMatch(notification.body);
@@ -229,24 +224,49 @@ class _NotificationScreenState extends State<NotificationScreen>
 
       debugPrint('Extracted Kode Transaksi: $kodeTransaksi');
       debugPrint('Extracted Event Type: $eventType');
+
       if (!mounted) return;
-      if (kodeTransaksi != null && kodeTransaksi.isNotEmpty) {
-        if (eventType == null ||
-            eventType.toLowerCase().contains('order') ||
-            eventType.toLowerCase().contains('transaksi')) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OrderDetailPage(
-                kodeTransaksi: kodeTransaksi!, // Gunakan bang operator
+
+      // Handle specific event types that should go to order detail page
+      if (eventType != null &&
+          kodeTransaksi != null &&
+          kodeTransaksi.isNotEmpty) {
+        switch (eventType) {
+          case 'order_done':
+          case 'order_processed':
+          case 'order_rejected':
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OrderDetailPage(
+                  kodeTransaksi: kodeTransaksi!,
+                ),
               ),
-            ),
-          );
-          return;
+            );
+            return;
+          case 'new_order':
+            Get.toNamed(AppRoutes.transaksiToko);
+            return;
+          case 'store_approved':
+            Get.toNamed(AppRoutes.tokoSaya);
+            return;
         }
       }
 
-      // Default behavior - show notification content
+      // Fallback: if we have transaction code but no specific event type
+      if (kodeTransaksi != null && kodeTransaksi.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderDetailPage(
+              kodeTransaksi: kodeTransaksi!,
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Show dialog if no transaction code found
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -292,33 +312,28 @@ class _NotificationScreenState extends State<NotificationScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-<<<<<<< Updated upstream
-=======
-        title: Text('Notifikasi'),
->>>>>>> Stashed changes
         backgroundColor: const Color(0xFF006A55),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text('Notifikasi', style: TextStyle(color: Colors.white)),
         actions: [
           if (_notifications.any((notification) => !notification.isRead))
             IconButton(
               icon: Icon(Icons.done_all),
               onPressed: _markAllAsRead,
-<<<<<<< Updated upstream
               tooltip: 'Mark all as read',
               color: Colors.white,
-=======
-              tooltip: 'Tandai semua sebagai dibaca',
->>>>>>> Stashed changes
             ),
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _loadNotifications,
-<<<<<<< Updated upstream
             tooltip: 'Refresh',
             color: Colors.white,
-=======
-            tooltip: 'Muat ulang',
->>>>>>> Stashed changes
           ),
         ],
       ),
@@ -329,15 +344,14 @@ class _NotificationScreenState extends State<NotificationScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-<<<<<<< Updated upstream
-                      Text('Gagal untuk menampilkan notifikasi'),
-=======
-                      Text('Gagal memuat notifikasi'),
->>>>>>> Stashed changes
+                      Text('Silahkan Login Terlebih Dahulu'),
                       SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _loadNotifications,
-                        child: Text('Coba Lagi'),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/login');
+                        },
+                        child: Text('Login',
+                            style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF006A55),
                         ),
@@ -357,11 +371,7 @@ class _NotificationScreenState extends State<NotificationScreen>
                           ),
                           SizedBox(height: 16),
                           Text(
-<<<<<<< Updated upstream
                             'Belum Ada Notifikasi',
-=======
-                            'Belum ada notifikasi',
->>>>>>> Stashed changes
                             style: TextStyle(
                               fontSize: 18,
                               color: Colors.grey[700],
@@ -402,15 +412,9 @@ class _NotificationScreenState extends State<NotificationScreen>
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-<<<<<<< Updated upstream
                                       title: Text("Confirm"),
                                       content: Text(
                                           "Yakin untuk menghapus notifikasi ini?"),
-=======
-                                      title: Text("Konfirmasi"),
-                                      content: Text(
-                                          "Apakah Anda yakin ingin menghapus notifikasi ini?"),
->>>>>>> Stashed changes
                                       actions: [
                                         TextButton(
                                           onPressed: () =>
@@ -439,99 +443,54 @@ class _NotificationScreenState extends State<NotificationScreen>
                             child: Card(
                               margin: EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 4),
-                              elevation: notification.isRead ? 1 : 3,
-                              color:
-                                  notification.isRead ? null : Colors.grey[50],
-<<<<<<< Updated upstream
-                              child: ListTile(
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
+                              elevation: 4, // Increased shadow
+                              shadowColor: Colors.black26, // Shadow color
+                              color: Colors.white, // White background
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(
+                                  color: notification.isRead
+                                      ? Colors.grey.shade300
+                                      : const Color(0xFF006A55)
+                                          .withOpacity(0.3), // Outline color
+                                  width: 1,
                                 ),
-                                leading: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF006A55)
-                                        .withOpacity(0.1),
-                                    shape: BoxShape.circle,
-=======
-                              child: InkWell(
-                                onTap: () =>
-                                    _handleNotificationTap(notification),
+                              ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  // Additional shadow effect
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
                                 child: ListTile(
                                   contentPadding: EdgeInsets.symmetric(
                                     horizontal: 16,
                                     vertical: 8,
->>>>>>> Stashed changes
                                   ),
-                                  leading: Stack(
-                                    children: [
-                                      Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF006A55)
-                                              .withOpacity(0.1),
-                                          shape: BoxShape.circle,
-                                        ),
-<<<<<<< Updated upstream
-                                      )
-                                    : null,
-                                onTap: () {
-                                  if (!notification.isRead) {
-                                    _markAsRead(notification.id);
-                                  }
-                                  // Handle notification tap - maybe navigate to related content
-                                  if (notification.data != null) {
-                                    // Handle navigation based on notification data
-                                    final data = notification.data!;
-                                    if (data.containsKey('event_type')) {
-                                      String eventType = data['event_type'];
-                                      switch (eventType) {
-                                        case 'order_processed':
-                                          Get.toNamed(AppRoutes.orderHistory);
-                                          break;
-                                        // Add other event types as needed
-                                        case 'order_rejected':
-                                          Get.toNamed(AppRoutes.orderHistory);
-                                          break;
-                                        case 'new_order':
-                                          Get.toNamed(AppRoutes.transaksiToko);
-                                          break;
-                                        case 'store_approved':
-                                          Get.toNamed(AppRoutes.tokoSaya);
-                                          break;
-                                        case 'order_done':
-                                          Get.toNamed(AppRoutes.orderHistory);
-                                      }
-                                    }
-                                  }
-                                },
-=======
-                                        child: Icon(
-                                          Icons.notifications,
-                                          color: const Color(0xFF006A55),
-                                          size: 20,
-                                        ),
+                                  leading: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF006A55)
+                                          .withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: const Color(0xFF006A55)
+                                            .withOpacity(0.2),
+                                        width: 1,
                                       ),
-                                      if (!notification.isRead)
-                                        Positioned(
-                                          right: 0,
-                                          top: 0,
-                                          child: Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              color: Colors.redAccent,
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                  color: Colors.white,
-                                                  width: 1.5),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
+                                    ),
+                                    child: Icon(
+                                      Icons.notifications,
+                                      color: const Color(0xFF006A55),
+                                      size: 20,
+                                    ),
                                   ),
                                   title: Text(
                                     notification.title,
@@ -539,6 +498,7 @@ class _NotificationScreenState extends State<NotificationScreen>
                                       fontWeight: notification.isRead
                                           ? FontWeight.normal
                                           : FontWeight.bold,
+                                      color: Colors.black87,
                                     ),
                                   ),
                                   subtitle: Column(
@@ -546,7 +506,12 @@ class _NotificationScreenState extends State<NotificationScreen>
                                         CrossAxisAlignment.start,
                                     children: [
                                       SizedBox(height: 4),
-                                      Text(notification.body),
+                                      Text(
+                                        notification.body,
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
                                       SizedBox(height: 4),
                                       Text(
                                         _formatDate(notification.createdAt),
@@ -557,9 +522,27 @@ class _NotificationScreenState extends State<NotificationScreen>
                                       ),
                                     ],
                                   ),
-                                  // trailing dihapus agar tidak dobel indikator
+                                  trailing: !notification.isRead
+                                      ? Container(
+                                          width: 10,
+                                          height: 10,
+                                          decoration: BoxDecoration(
+                                            color: Colors.redAccent,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.redAccent
+                                                    .withOpacity(0.3),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : null,
+                                  onTap: () =>
+                                      _handleNotificationTap(notification),
                                 ),
->>>>>>> Stashed changes
                               ),
                             ),
                           );

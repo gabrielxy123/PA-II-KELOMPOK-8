@@ -1085,6 +1085,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
           _storeName ?? 'Toko Anda',
           style: TextStyle(fontSize: 16),
         ),
+        backgroundColor: Colors.white,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -1109,8 +1110,7 @@ class _TokoDetailPageState extends State<TokoDetailPage>
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(
-                              context, "/profile-toko-saya");
+                          Navigator.pushNamed(context, "/profile-toko-saya");
                         },
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),

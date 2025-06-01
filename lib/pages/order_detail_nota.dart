@@ -82,6 +82,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Nota'),
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -116,8 +117,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: Colors.white,
+            shadowColor: Colors.black26,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -148,7 +156,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           ],
                         ),
                       ),
-                      _buildStatusBadge(order['items'][0]['status']?.toString() ?? 'Ditolak'),
+                      _buildStatusBadge(
+                          order['items'][0]['status']?.toString() ?? 'Ditolak'),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -172,8 +181,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: Colors.white,
+            shadowColor: Colors.black26,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -181,7 +197,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.store, color: Colors.blue),
+                      Icon(Icons.store, color:  Color(0xFF006A55)),
                       SizedBox(width: 8),
                       Text(
                         'Informasi Toko',
@@ -225,8 +241,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Card(
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 16),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: Colors.white,
+            shadowColor: Colors.black26,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -234,7 +257,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.local_laundry_service, color: Colors.blue),
+                      Icon(Icons.local_laundry_service, color: Color(0xFF006A55)),
                       SizedBox(width: 8),
                       Text(
                         'Layanan Laundry',
@@ -260,11 +283,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: Color(0xFF006A55).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(Icons.local_laundry_service,
-                                color: Colors.blue, size: 20),
+                                color: Color(0xFF006A55), size: 20),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -307,12 +330,21 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
 // Pesanan Kiloan Card
 
-          if (pesananKiloan != null && pesananKiloan['details'] != null && pesananKiloan['details'].isNotEmpty)
+          if (pesananKiloan != null &&
+              pesananKiloan['details'] != null &&
+              pesananKiloan['details'].isNotEmpty)
             Card(
               elevation: 2,
               margin: const EdgeInsets.only(bottom: 16),
+              color: Colors.white,
+              shadowColor: Colors.black26,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -320,7 +352,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.scale, color: Colors.blue),
+                        Icon(Icons.scale, color: Color(0xFF006A55)),
                         SizedBox(width: 8),
                         Text(
                           'Pesanan Kiloan',
@@ -382,11 +414,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.purple.withOpacity(0.1),
+                                color: Color(0xFF006A55).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(Icons.category,
-                                  color: Colors.purple),
+                                  color: Color(0xFF006A55)),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -416,8 +448,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             Card(
               elevation: 2,
               margin: const EdgeInsets.only(bottom: 16),
+              color: Colors.white,
+              shadowColor: Colors.black26,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -425,7 +464,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.add_circle_outline, color: Colors.blue),
+                        Icon(Icons.add_circle_outline, color: Color(0xFF006A55)),
                         SizedBox(width: 8),
                         Text(
                           'Layanan Tambahan',
@@ -450,11 +489,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
+                                color: Color(0xFF006A55).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.add_circle,
-                                  color: Colors.green, size: 20),
+                              child: const Icon(Icons.iron,
+                                  color: Color(0xFF006A55), size: 20),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -482,7 +521,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           // Summary Card
           Card(
             elevation: 2,
-            color: Colors.blue.shade50,
+            color: Colors.green.shade100,
             margin: const EdgeInsets.only(bottom: 16),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -519,7 +558,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Grand Total',
+                        'Total',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -530,7 +569,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
-                          color: Colors.blue,
+                          color: Colors.black,
                         ),
                       ),
                     ],

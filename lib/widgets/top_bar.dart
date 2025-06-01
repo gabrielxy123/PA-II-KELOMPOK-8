@@ -105,11 +105,18 @@ class _TopBarWidgetState extends State<TopBarWidget> {
             children: [
               InkWell(
                 onTap: () {
-                  if (!authProvider.isCheckingLogin) {
+                  userProfileFuture.then((userProfile) {
+                    if (userProfile != null) {
+                      // User sudah login dan profil berhasil dimuat
+                      Navigator.pushNamed(context, "/user-profil");
+                    } else {
+                      // User belum login atau profil gagal dimuat
+                      Navigator.pushNamed(context, "/login");
+                    }
+                  }).catchError((error) {
+                    // Jika ada error, arahkan ke login
                     Navigator.pushNamed(context, "/login");
-                  } else {
-                    Navigator.pushNamed(context, "/akun");
-                  }
+                  });
                 },
                 child: Row(
                   children: [

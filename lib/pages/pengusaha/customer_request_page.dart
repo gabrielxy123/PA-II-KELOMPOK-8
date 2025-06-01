@@ -153,6 +153,7 @@ class _CustomerRequestPageState extends State<CustomerRequestPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Permintaan Pelanggan'),
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -176,7 +177,8 @@ class _CustomerRequestPageState extends State<CustomerRequestPage>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
+                        color: const Color(
+                            0xFF006A55), // Gunakan warna hijau tema app
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -192,9 +194,9 @@ class _CustomerRequestPageState extends State<CustomerRequestPage>
               ),
             );
           }).toList(),
-          labelColor: Theme.of(context).primaryColor,
+          labelColor: const Color(0xFF006A55), // Warna hijau tema app
           unselectedLabelColor: Colors.grey,
-          indicatorColor: Theme.of(context).primaryColor,
+          indicatorColor: const Color(0xFF006A55), // Warna hijau tema app
           indicatorWeight: 3,
         ),
       ),
@@ -259,8 +261,14 @@ class _RequestListView extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
+      color: Colors.white,
+      shadowColor: Colors.black26,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.grey.shade300,
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +277,7 @@ class _RequestListView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: Colors.green.shade50,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -281,7 +289,7 @@ class _RequestListView extends StatelessWidget {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(Icons.receipt_long, color: Colors.blue),
+                      const Icon(Icons.receipt_long, color: Color(0xFF006A55)),
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
@@ -363,7 +371,7 @@ class _RequestListView extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: Color(0xFF006A55),
                       ),
                     ),
                   ],
@@ -390,7 +398,7 @@ class _RequestListView extends StatelessWidget {
                       icon: const Icon(Icons.visibility, size: 18),
                       label: const Text('Lihat Detail'),
                       style: TextButton.styleFrom(
-                        foregroundColor: Colors.blue,
+                        foregroundColor: const Color(0xFF006A55),
                       ),
                     ),
                     const SizedBox(width: 8),
