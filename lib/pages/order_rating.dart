@@ -31,7 +31,7 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
   String _debugMessage = '';
 
   // API Base URL - sesuaikan dengan URL backend Anda
-    final String baseUrl = Apiconstant.BASE_URL;
+  final String baseUrl = Apiconstant.BASE_URL;
 // Ganti dengan URL Anda
 
   @override
@@ -58,10 +58,12 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
       final token = prefs.getString('auth_token');
 
       print('=== DEBUG CHECK CAN REVIEW ===');
-      print('Token: ${token != null ? "Available (${token?.substring(0, 20)}...)" : "Not found"}');
+      print(
+          'Token: ${token != null ? "Available (${token?.substring(0, 20)}...)" : "Not found"}');
       print('Kode Transaksi: ${widget.kodeTransaksi}');
-      
-      final url = '$baseUrl/ulasan/transaksi/${widget.kodeTransaksi}/cek-bisa-ulas';
+
+      final url =
+          '$baseUrl/ulasan/transaksi/${widget.kodeTransaksi}/cek-bisa-ulas';
       print('URL: $url');
 
       if (token == null) {
@@ -95,7 +97,7 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
         try {
           final data = jsonDecode(response.body);
           print('Parsed Data: $data');
-          
+
           // Check if response has expected structure
           if (data is Map<String, dynamic>) {
             setState(() {
@@ -134,13 +136,15 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
         setState(() {
           _debugMessage = 'Server error: ${response.statusCode}';
         });
-        
+
         // Try to parse error message from response
         try {
           final errorData = jsonDecode(response.body);
-          throw Exception(errorData['message'] ?? 'Server error: ${response.statusCode}');
+          throw Exception(
+              errorData['message'] ?? 'Server error: ${response.statusCode}');
         } catch (e) {
-          throw Exception('Server error: ${response.statusCode} - ${response.body}');
+          throw Exception(
+              'Server error: ${response.statusCode} - ${response.body}');
         }
       }
     } catch (e) {
@@ -149,15 +153,17 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
         _isCheckingReview = false;
         _debugMessage = 'Error: $e';
       });
-      
+
       // Show more specific error messages
       String errorMessage = e.toString();
-      if (errorMessage.contains('SocketException') || errorMessage.contains('timeout')) {
-        errorMessage = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
+      if (errorMessage.contains('SocketException') ||
+          errorMessage.contains('timeout')) {
+        errorMessage =
+            'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
       } else if (errorMessage.contains('FormatException')) {
         errorMessage = 'Response server tidak valid. Hubungi administrator.';
       }
-      
+
       _showErrorDialog(errorMessage);
     }
   }
@@ -185,7 +191,7 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
           final review = data['data'];
-          
+
           setState(() {
             _rating = (review['rating'] ?? 0).toDouble();
             _reviewController.text = review['review'] ?? '';
@@ -219,8 +225,8 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
       final requestBody = {
         'kode_transaksi': widget.kodeTransaksi,
         'rating': _rating.toInt(),
-        'review': _reviewController.text.trim().isEmpty 
-            ? null 
+        'review': _reviewController.text.trim().isEmpty
+            ? null
             : _reviewController.text.trim(),
       };
 
@@ -248,7 +254,8 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
       if (response.statusCode == 201 && data['success'] == true) {
         _showSuccessDialog('Penilaian Anda telah dikirim!');
       } else {
-        throw Exception(data['message'] ?? 'Terjadi kesalahan saat mengirim ulasan');
+        throw Exception(
+            data['message'] ?? 'Terjadi kesalahan saat mengirim ulasan');
       }
     } catch (e) {
       setState(() {
@@ -270,8 +277,10 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
           children: [
             Text(message),
             const SizedBox(height: 16),
-            const Text('Debug Info:', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text(_debugMessage, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text('Debug Info:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(_debugMessage,
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
           ],
         ),
         actions: [
@@ -388,6 +397,16 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
           // Header Card
           Card(
             elevation: 2,
+            margin: const EdgeInsets.only(bottom: 16),
+            color: Colors.white,
+            shadowColor: Colors.black26,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -440,6 +459,16 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
           // Rating Section
           Card(
             elevation: 2,
+            margin: const EdgeInsets.only(bottom: 16),
+            color: Colors.white,
+            shadowColor: Colors.black26,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -462,11 +491,13 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
                           color: Colors.amber,
                           size: 40,
                         ),
-                        onPressed: _hasReview ? null : () {
-                          setState(() {
-                            _rating = index + 1.0;
-                          });
-                        },
+                        onPressed: _hasReview
+                            ? null
+                            : () {
+                                setState(() {
+                                  _rating = index + 1.0;
+                                });
+                              },
                       );
                     }),
                   ),
@@ -490,6 +521,16 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
           // Review Text Section
           Card(
             elevation: 2,
+            margin: const EdgeInsets.only(bottom: 16),
+            color: Colors.white,
+            shadowColor: Colors.black26,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -507,11 +548,26 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
                     controller: _reviewController,
                     enabled: !_hasReview,
                     decoration: InputDecoration(
-                      hintText: _hasReview 
+                      hintText: _hasReview
                           ? 'Anda sudah memberikan ulasan'
                           : 'Tulis ulasan Anda tentang pelayanan laundry ini...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Colors.green.shade50,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Colors.grey, // Warna border saat tidak fokus
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Colors.green, // Warna border saat fokus
+                        ),
                       ),
                       contentPadding: const EdgeInsets.all(12),
                     ),
@@ -545,7 +601,8 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Text(
@@ -566,16 +623,16 @@ class _OrderReviewPageState extends State<OrderReviewPage> {
               decoration: BoxDecoration(
                 color: Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: Colors.green.shade200),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info, color: Colors.blue.shade700),
+                  Icon(Icons.info, color: Color(0xFF006A55)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Anda sudah memberikan ulasan untuk pesanan ini.',
-                      style: TextStyle(color: Colors.blue.shade700),
+                      style: TextStyle(color: Colors.green),
                     ),
                   ),
                 ],
