@@ -335,7 +335,7 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
                     child: Center(
                       child: _isLoading
                           ? CircularProgressIndicator(
@@ -353,6 +353,7 @@ class _TokoUserDetailPageState extends State<TokoUserDetailPage>
                     ),
                   ),
                 ),
+                const SizedBox(height: 11.5,)
               ],
             ),
     );
