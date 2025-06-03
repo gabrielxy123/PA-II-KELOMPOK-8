@@ -700,7 +700,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
     final items = order['items'];
     final layananTambahan = order['layanan_tambahan'];
     final pesananKiloan = order['pesanan_kiloan'];
-    final catatan = order['catatan'];
+    final catatan = order['catatan'] ?? '';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -1270,7 +1270,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
               ),
             ),
 
-          if (catatan.isNotEmpty)
+          if (catatan != null && catatan.isNotEmpty)
             Card(
               elevation: 2,
               margin: const EdgeInsets.only(bottom: 16),
