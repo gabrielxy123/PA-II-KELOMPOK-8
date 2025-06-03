@@ -126,7 +126,7 @@ class _CustomerRequestPageState extends State<CustomerRequestPage>
         });
       }
     } catch (e) {
-      setState(() {
+    setState(() {
         _isLoading = false;
       });
     }

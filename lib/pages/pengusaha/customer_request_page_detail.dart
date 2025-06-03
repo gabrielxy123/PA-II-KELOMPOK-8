@@ -700,6 +700,7 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
     final items = order['items'];
     final layananTambahan = order['layanan_tambahan'];
     final pesananKiloan = order['pesanan_kiloan'];
+    final catatan = order['catatan'];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -1263,6 +1264,47 @@ class _CustomerRequestDetailPageState extends State<CustomerRequestDetailPage> {
                           ],
                         );
                       },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          if (catatan.isNotEmpty)
+            Card(
+              elevation: 2,
+              margin: const EdgeInsets.only(bottom: 16),
+              color: Colors.white,
+              shadowColor: Colors.black26,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.note_alt, color: Color(0xFF006A55)),
+                        SizedBox(width: 8),
+                        Text(
+                          'Catatan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+                    Text(
+                      catatan,
+                      style: const TextStyle(fontSize: 15),
                     ),
                   ],
                 ),
